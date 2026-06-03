@@ -23,6 +23,11 @@ if (!API_KEY || !API_BASE_URL) {
 app.use(cors());
 app.use(express.json());
 
+// 根路由直接返回首页
+app.get("/", (req, res) => {
+  res.sendFile(join(__dirname, "../dist/index.html"));
+});
+
 // 托管前端构建产物
 app.use(express.static(distPath));
 
