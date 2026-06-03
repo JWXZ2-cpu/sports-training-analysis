@@ -2,7 +2,34 @@ const zh = {
   lang: "zh",
   langLabel: "中",
 
-  // 顶栏
+  // 新 UI
+  appTitle: "训练分析",
+  steps: ["语音输入", "数据确认", "分析结果"],
+
+  // 语音输入页
+  tapToSpeak: "点击麦克风开始录音",
+  listening: "正在录音，请说话...",
+  voiceRecorded: "录音完成，可点击确认继续",
+  voiceTranscript: "语音转录",
+  confirmAndContinue: "确认并继续",
+  voiceHint: "请描述你今天的训练感受、身体状态、遇到的难点等",
+  voiceNotSupported: "浏览器不支持语音识别",
+  voiceNotSupportedHint: "请使用 Chrome 或 Edge 浏览器",
+
+  // 数据确认页
+  backToVoice: "返回重录",
+  sectionBasic: "基本信息",
+  sectionScores: "主观评分（1-10）",
+  sectionTags: "快速标签",
+  sectionTranscript: "语音转录",
+  sectionHistory: "历史参考数据（选填）",
+  startAnalysis: "开始分析",
+
+  // 结果页
+  backToEdit: "返回修改数据",
+  restartRecording: "重新录音",
+
+  // 顶栏（旧）
   title: "训练分析 Prompt 工作台",
   subtitle: "编辑模板 · 填入数据 · 实时测试 AI 效果",
 

@@ -2,7 +2,34 @@ const en = {
   lang: "en",
   langLabel: "EN",
 
-  // Top bar
+  // New UI
+  appTitle: "Training Analysis",
+  steps: ["Voice Input", "Data Confirm", "Analysis"],
+
+  // Voice input page
+  tapToSpeak: "Tap the microphone to start recording",
+  listening: "Recording, please speak...",
+  voiceRecorded: "Recording complete, tap confirm to continue",
+  voiceTranscript: "Voice Transcript",
+  confirmAndContinue: "Confirm & Continue",
+  voiceHint: "Describe your training experience, body condition, difficulties, etc.",
+  voiceNotSupported: "Speech recognition not supported",
+  voiceNotSupportedHint: "Please use Chrome or Edge browser",
+
+  // Data confirm page
+  backToVoice: "Re-record",
+  sectionBasic: "Basic Info",
+  sectionScores: "Subjective Scores (1-10)",
+  sectionTags: "Quick Tags",
+  sectionTranscript: "Voice Transcript",
+  sectionHistory: "Historical Data (optional)",
+  startAnalysis: "Start Analysis",
+
+  // Result page
+  backToEdit: "Edit Data",
+  restartRecording: "New Recording",
+
+  // Top bar (legacy)
   title: "Training Analysis Prompt Workbench",
   subtitle: "Edit templates · Fill data · Test AI results in real-time",
 

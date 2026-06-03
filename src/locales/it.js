@@ -2,7 +2,34 @@ const it = {
   lang: "it",
   langLabel: "IT",
 
-  // Barra superiore
+  // Nuova UI
+  appTitle: "Analisi Allenamento",
+  steps: ["Input Vocale", "Conferma Dati", "Risultato"],
+
+  // Pagina input vocale
+  tapToSpeak: "Tocca il microfono per iniziare la registrazione",
+  listening: "Registrazione in corso, parla...",
+  voiceRecorded: "Registrazione completa, tocca conferma per continuare",
+  voiceTranscript: "Trascrizione Vocale",
+  confirmAndContinue: "Conferma e Continua",
+  voiceHint: "Descrivi la tua esperienza di allenamento, le condizioni fisiche, le difficoltà, ecc.",
+  voiceNotSupported: "Riconoscimento vocale non supportato",
+  voiceNotSupportedHint: "Usa Chrome o Edge",
+
+  // Pagina conferma dati
+  backToVoice: "Registra di nuovo",
+  sectionBasic: "Informazioni Base",
+  sectionScores: "Punteggi Soggettivi (1-10)",
+  sectionTags: "Tag Rapidi",
+  sectionTranscript: "Trascrizione Vocale",
+  sectionHistory: "Dati Storici (opzionale)",
+  startAnalysis: "Avvia Analisi",
+
+  // Pagina risultato
+  backToEdit: "Modifica Dati",
+  restartRecording: "Nuova Registrazione",
+
+  // Barra superiore (legacy)
   title: "Workbench Prompt Analisi Allenamento",
   subtitle: "Modifica template · Inserisci dati · Testa i risultati AI in tempo reale",
 
