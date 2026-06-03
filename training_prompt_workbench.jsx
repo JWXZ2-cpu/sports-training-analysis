@@ -1,0 +1,442 @@
+import { useState, useRef, useCallback } from "react";
+
+const DEFAULT_SYSTEM = `你是一名专业的运动训练数据分析师，精通运动科学、运动心理学与体能恢复理论。
+
+你的任务是分析运动员在训练结束后提交的语音转文字内容、主观评分和标签，生成结构化的训练分析报告，供教练参考决策。
+
+【输出格式要求】
+请严格按照以下 JSON 结构输出，不要输出任何 JSON 之外的内容：
+
+{
+  "overall_score": number,        // 综合评分 1-10，综合身体、心理与反馈质量
+  "status_level": "优秀|正常|关注|预警",
+  "emotion": {
+    "polarity": "积极|中性|消极",
+    "confidence": number,         // 0.0-1.0
+    "signals": string[]           // 情绪信号关键词，最多3个
+  },
+  "fatigue": {
+    "level": "低|中|高",
+    "body_parts": string[],       // 提及的身体部位，如["膝盖","大腿"]
+    "evidence": string            // 支撑判断的原文片段，≤30字
+  },
+  "difficulty_points": string[],  // 运动员反馈的训练难点，最多3项
+  "diary_text": string,           // AI生成的训练日记，150字以内，第一人称，自然口吻
+  "coach_summary": string,        // 给教练的简报，80字以内，客观第三人称
+  "recommendations": string[],    // 明日训练建议，2-3条，每条≤25字
+  "risk_flag": boolean,           // 是否需要教练立即关注
+  "risk_reason": string           // risk_flag为true时填写原因，否则为null
+}`;
+
+const DEFAULT_USER_TEMPLATE = `【运动员基本信息】
+姓名：{{athlete_name}}
+训练课程：{{session_name}}
+日期：{{date}}
+
+【主观评分（1-10）】
+身体状态：{{body_score}}
+心理状态：{{mind_score}}
+难点掌握：{{difficulty_score}}
+
+【快速标注标签】
+{{tags}}
+
+【语音转文字内容】
+{{transcript}}
+
+【历史参考数据】
+本周身体均分：{{week_body_avg}}
+本周心理均分：{{week_mind_avg}}
+近3次训练评分趋势：{{recent_trend}}
+
+请根据以上信息，生成结构化训练分析报告。`;
+
+const SAMPLE_DATA = {
+  athlete_name: "张明远",
+  session_name: "速度耐力课",
+  date: "2025-12-18",
+  body_score: "7",
+  mind_score: "8",
+  difficulty_score: "5",
+  tags: "膝盖酸痛、状态良好",
+  transcript: "今天跑的感觉还行，最后两组有点掉速，膝盖有点酸，心理状态挺好的，加速跑那块还需要多练，感觉节奏还没完全掌握，其他的都还可以吧",
+  week_body_avg: "7.1",
+  week_mind_avg: "7.4",
+  recent_trend: "7→6→7（近3次身体）",
+};
+
+const FIELD_LABELS = {
+  athlete_name: "运动员姓名",
+  session_name: "训练课程",
+  date: "训练日期",
+  body_score: "身体评分",
+  mind_score: "心理评分",
+  difficulty_score: "难点掌握",
+  tags: "标注标签",
+  transcript: "语音转录",
+  week_body_avg: "本周身体均分",
+  week_mind_avg: "本周心理均分",
+  recent_trend: "近期趋势",
+};
+
+const STATUS_COLOR = {
+  优秀: { bg: "#E1F5EE", text: "#0F6E56", border: "#9FE1CB" },
+  正常: { bg: "#E6F1FB", text: "#0C447C", border: "#85B7EB" },
+  关注: { bg: "#FAEEDA", text: "#633806", border: "#FAC775" },
+  预警: { bg: "#FCEBEB", text: "#791F1F", border: "#F09595" },
+};
+
+const POLARITY_COLOR = {
+  积极: "#1D9E75",
+  中性: "#888780",
+  消极: "#E24B4A",
+};
+
+const FATIGUE_COLOR = {
+  低: "#1D9E75",
+  中: "#BA7517",
+  高: "#E24B4A",
+};
+
+function ScoreBar({ value, max = 10, color = "#7F77DD" }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <div style={{ flex: 1, height: 5, background: "#f1efe8", borderRadius: 3, overflow: "hidden" }}>
+        <div style={{ width: `${(value / max) * 100}%`, height: "100%", background: color, borderRadius: 3, transition: "width 0.6s ease" }} />
+      </div>
+      <span style={{ fontSize: 12, fontWeight: 500, minWidth: 20 }}>{value}</span>
+    </div>
+  );
+}
+
+function Badge({ text, style }) {
+  return (
+    <span style={{
+      fontSize: 11, padding: "2px 9px", borderRadius: 20,
+      border: "0.5px solid", display: "inline-block",
+      ...style
+    }}>{text}</span>
+  );
+}
+
+function ResultView({ result }) {
+  if (!result) return null;
+  const sc = STATUS_COLOR[result.status_level] || STATUS_COLOR["正常"];
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {/* Header row */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+        <div style={{ background: sc.bg, border: `1px solid ${sc.border}`, borderRadius: 8, padding: "6px 14px" }}>
+          <span style={{ fontSize: 13, fontWeight: 500, color: sc.text }}>{result.status_level}</span>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <span style={{ fontSize: 11, color: "#888" }}>综合评分</span>
+          <span style={{ fontSize: 22, fontWeight: 500, lineHeight: 1.1 }}>{result.overall_score}</span>
+        </div>
+        {result.risk_flag && (
+          <div style={{ background: "#FCEBEB", border: "1px solid #F09595", borderRadius: 8, padding: "6px 12px", marginLeft: "auto" }}>
+            <span style={{ fontSize: 12, color: "#A32D2D", fontWeight: 500 }}>⚠ 需立即关注</span>
+            <div style={{ fontSize: 11, color: "#A32D2D", marginTop: 2 }}>{result.risk_reason}</div>
+          </div>
+        )}
+      </div>
+
+      {/* Scores */}
+      <div style={{ background: "#f8f7f4", borderRadius: 8, padding: "10px 12px", display: "flex", flexDirection: "column", gap: 7 }}>
+        <div style={{ fontSize: 11, color: "#888", marginBottom: 2, fontWeight: 500 }}>情绪与疲劳</div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+          <Badge text={`情绪 ${result.emotion.polarity}`} style={{ background: POLARITY_COLOR[result.emotion.polarity] + "18", color: POLARITY_COLOR[result.emotion.polarity], borderColor: POLARITY_COLOR[result.emotion.polarity] + "44" }} />
+          <Badge text={`疲劳 ${result.fatigue.level}`} style={{ background: FATIGUE_COLOR[result.fatigue.level] + "18", color: FATIGUE_COLOR[result.fatigue.level], borderColor: FATIGUE_COLOR[result.fatigue.level] + "44" }} />
+          {result.fatigue.body_parts?.map(p => (
+            <Badge key={p} text={p} style={{ background: "#FAEEDA", color: "#633806", borderColor: "#FAC775" }} />
+          ))}
+        </div>
+        {result.fatigue.evidence && (
+          <div style={{ fontSize: 11, color: "#888", fontStyle: "italic", borderLeft: "2px solid #EF9F27", paddingLeft: 8, marginTop: 2 }}>
+            "{result.fatigue.evidence}"
+          </div>
+        )}
+      </div>
+
+      {/* Emotion signals */}
+      {result.emotion.signals?.length > 0 && (
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {result.emotion.signals.map(s => (
+            <Badge key={s} text={s} style={{ background: "#EEEDFE", color: "#3C3489", borderColor: "#CECBF6" }} />
+          ))}
+        </div>
+      )}
+
+      {/* Difficulty points */}
+      {result.difficulty_points?.length > 0 && (
+        <div style={{ background: "#f8f7f4", borderRadius: 8, padding: "10px 12px" }}>
+          <div style={{ fontSize: 11, color: "#888", marginBottom: 6, fontWeight: 500 }}>训练难点</div>
+          {result.difficulty_points.map((d, i) => (
+            <div key={i} style={{ fontSize: 12, color: "#444", padding: "3px 0", display: "flex", alignItems: "flex-start", gap: 6 }}>
+              <span style={{ color: "#7F77DD", fontSize: 10, marginTop: 3 }}>●</span>{d}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Diary */}
+      <div style={{ border: "0.5px solid #e0dfd8", borderRadius: 8, padding: "10px 12px" }}>
+        <div style={{ fontSize: 11, color: "#888", marginBottom: 5, fontWeight: 500 }}>训练日记</div>
+        <div style={{ fontSize: 12, color: "#333", lineHeight: 1.75 }}>{result.diary_text}</div>
+      </div>
+
+      {/* Coach summary */}
+      <div style={{ border: "0.5px solid #9FE1CB", borderRadius: 8, padding: "10px 12px", background: "#f4fcf9" }}>
+        <div style={{ fontSize: 11, color: "#0F6E56", marginBottom: 5, fontWeight: 500 }}>教练简报</div>
+        <div style={{ fontSize: 12, color: "#085041", lineHeight: 1.75 }}>{result.coach_summary}</div>
+      </div>
+
+      {/* Recommendations */}
+      {result.recommendations?.length > 0 && (
+        <div style={{ background: "#f8f7f4", borderRadius: 8, padding: "10px 12px" }}>
+          <div style={{ fontSize: 11, color: "#888", marginBottom: 6, fontWeight: 500 }}>明日训练建议</div>
+          {result.recommendations.map((r, i) => (
+            <div key={i} style={{ fontSize: 12, color: "#333", padding: "3px 0", display: "flex", gap: 8, alignItems: "flex-start" }}>
+              <span style={{ color: "#1D9E75", fontSize: 11, marginTop: 2, minWidth: 14 }}>{i + 1}.</span>{r}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function App() {
+  const [systemPrompt, setSystemPrompt] = useState(DEFAULT_SYSTEM);
+  const [userTemplate, setUserTemplate] = useState(DEFAULT_USER_TEMPLATE);
+  const [fields, setFields] = useState(SAMPLE_DATA);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
+  const [rawJson, setRawJson] = useState(null);
+  const [activeTab, setActiveTab] = useState("system"); // system | user | data | result
+  const [showRaw, setShowRaw] = useState(false);
+
+  const buildUserPrompt = useCallback(() => {
+    let msg = userTemplate;
+    Object.entries(fields).forEach(([k, v]) => {
+      msg = msg.replaceAll(`{{${k}}}`, v);
+    });
+    return msg;
+  }, [userTemplate, fields]);
+
+  const handleRun = async () => {
+    setLoading(true);
+    setError(null);
+    setResult(null);
+    setRawJson(null);
+    setActiveTab("result");
+    try {
+      const resp = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          system: systemPrompt,
+          messages: [{ role: "user", content: buildUserPrompt() }],
+        }),
+      });
+      const data = await resp.json();
+      const text = data.content?.map(b => b.text || "").join("") || "";
+      setRawJson(text);
+      const clean = text.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(clean);
+      setResult(parsed);
+    } catch (e) {
+      setError("解析失败：" + e.message + "\n\n原始输出已在「原始 JSON」中显示");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const TAB_STYLE = (active) => ({
+    padding: "7px 14px",
+    fontSize: 12,
+    cursor: "pointer",
+    border: "none",
+    borderBottom: active ? "2px solid #534AB7" : "2px solid transparent",
+    background: "transparent",
+    color: active ? "#534AB7" : "#888",
+    fontWeight: active ? 500 : 400,
+    transition: "all 0.15s",
+  });
+
+  const TEXTAREA_STYLE = {
+    width: "100%",
+    fontFamily: "monospace",
+    fontSize: 11.5,
+    lineHeight: 1.65,
+    background: "#f8f7f4",
+    border: "0.5px solid #d3d1c7",
+    borderRadius: 8,
+    padding: "10px 12px",
+    color: "#2c2c2a",
+    resize: "vertical",
+    boxSizing: "border-box",
+    outline: "none",
+  };
+
+  return (
+    <div style={{ fontFamily: "sans-serif", fontSize: 13, color: "#2c2c2a" }}>
+
+      {/* Top bar */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
+        <div>
+          <div style={{ fontSize: 15, fontWeight: 500 }}>训练分析 Prompt 工作台</div>
+          <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>编辑模板 · 填入数据 · 实时测试 AI 效果</div>
+        </div>
+        <button
+          onClick={handleRun}
+          disabled={loading}
+          style={{
+            padding: "9px 20px", borderRadius: 8, border: "none",
+            background: loading ? "#AFA9EC" : "#534AB7",
+            color: "#fff", fontSize: 13, fontWeight: 500,
+            cursor: loading ? "not-allowed" : "pointer",
+            transition: "background 0.15s",
+          }}
+        >
+          {loading ? "AI 分析中..." : "运行分析 ▶"}
+        </button>
+      </div>
+
+      {/* Tabs */}
+      <div style={{ display: "flex", borderBottom: "0.5px solid #d3d1c7", marginBottom: 14 }}>
+        {[["system","系统提示词"],["user","用户模板"],["data","测试数据"],["result","分析结果"]].map(([id, label]) => (
+          <button key={id} style={TAB_STYLE(activeTab === id)} onClick={() => setActiveTab(id)}>
+            {label}
+            {id === "result" && result && <span style={{ marginLeft: 5, background: "#E1F5EE", color: "#0F6E56", borderRadius: 10, padding: "0 5px", fontSize: 10 }}>✓</span>}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab: System Prompt */}
+      {activeTab === "system" && (
+        <div>
+          <div style={{ fontSize: 11, color: "#888", marginBottom: 6 }}>定义 AI 的角色、输出格式与 JSON schema。这是 Prompt 的核心骨架。</div>
+          <textarea
+            value={systemPrompt}
+            onChange={e => setSystemPrompt(e.target.value)}
+            style={{ ...TEXTAREA_STYLE, minHeight: 420 }}
+          />
+          <div style={{ marginTop: 8, fontSize: 11, color: "#888" }}>
+            提示：JSON schema 中的字段注释会引导 AI 输出更精准。修改后点击「运行分析」立即验证效果。
+          </div>
+        </div>
+      )}
+
+      {/* Tab: User Template */}
+      {activeTab === "user" && (
+        <div>
+          <div style={{ fontSize: 11, color: "#888", marginBottom: 6 }}>
+            用 <code style={{ background: "#f1efe8", padding: "1px 5px", borderRadius: 4 }}>{"{{变量名}}"}</code> 插入动态数据。可用变量：
+            <span style={{ color: "#534AB7" }}> {Object.keys(fields).map(k => `{{${k}}}`).join("  ")}</span>
+          </div>
+          <textarea
+            value={userTemplate}
+            onChange={e => setUserTemplate(e.target.value)}
+            style={{ ...TEXTAREA_STYLE, minHeight: 380 }}
+          />
+          <div style={{ marginTop: 10, background: "#f8f7f4", borderRadius: 8, padding: "10px 12px" }}>
+            <div style={{ fontSize: 11, color: "#888", marginBottom: 6, fontWeight: 500 }}>预览（变量已填入）</div>
+            <pre style={{ fontSize: 11, color: "#444", lineHeight: 1.65, whiteSpace: "pre-wrap", margin: 0 }}>
+              {buildUserPrompt()}
+            </pre>
+          </div>
+        </div>
+      )}
+
+      {/* Tab: Test Data */}
+      {activeTab === "data" && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          {Object.entries(fields).map(([key, val]) => (
+            <div key={key} style={{ gridColumn: ["transcript","tags","recent_trend"].includes(key) ? "1 / -1" : undefined }}>
+              <label style={{ fontSize: 11, color: "#888", display: "block", marginBottom: 3 }}>{FIELD_LABELS[key] || key}</label>
+              {key === "transcript" ? (
+                <textarea
+                  value={val}
+                  onChange={e => setFields(f => ({ ...f, [key]: e.target.value }))}
+                  style={{ ...TEXTAREA_STYLE, minHeight: 80 }}
+                  placeholder="粘贴语音转文字内容..."
+                />
+              ) : (
+                <input
+                  value={val}
+                  onChange={e => setFields(f => ({ ...f, [key]: e.target.value }))}
+                  style={{
+                    width: "100%", height: 34, background: "#f8f7f4",
+                    border: "0.5px solid #d3d1c7", borderRadius: 6,
+                    padding: "0 10px", fontSize: 12, color: "#2c2c2a",
+                    boxSizing: "border-box", outline: "none",
+                  }}
+                />
+              )}
+            </div>
+          ))}
+          <div style={{ gridColumn: "1 / -1", marginTop: 4 }}>
+            <button
+              onClick={() => setFields(SAMPLE_DATA)}
+              style={{ fontSize: 11, padding: "5px 12px", borderRadius: 6, border: "0.5px solid #d3d1c7", background: "transparent", cursor: "pointer", color: "#888" }}
+            >
+              重置为示例数据
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Tab: Result */}
+      {activeTab === "result" && (
+        <div>
+          {loading && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, padding: "20px 0" }}>
+              {["调用 AI 分析引擎...","语音语义解析中...","生成报告结构..."].map((msg, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, opacity: 0.7 + i * 0.1 }}>
+                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#7F77DD", animation: "pulse 1s infinite", animationDelay: `${i * 0.2}s` }} />
+                  <span style={{ fontSize: 12, color: "#888" }}>{msg}</span>
+                </div>
+              ))}
+              <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
+            </div>
+          )}
+          {error && (
+            <div style={{ background: "#FCEBEB", border: "0.5px solid #F09595", borderRadius: 8, padding: "10px 12px", fontSize: 12, color: "#A32D2D", whiteSpace: "pre-wrap" }}>
+              {error}
+              {rawJson && <pre style={{ marginTop: 8, background: "#fff5f5", padding: 8, borderRadius: 4, fontSize: 11, overflowX: "auto" }}>{rawJson}</pre>}
+            </div>
+          )}
+          {result && !loading && (
+            <div>
+              <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+                <button
+                  onClick={() => setShowRaw(v => !v)}
+                  style={{ fontSize: 11, padding: "4px 10px", borderRadius: 5, border: "0.5px solid #d3d1c7", background: "transparent", cursor: "pointer", color: "#888" }}
+                >
+                  {showRaw ? "显示卡片视图" : "查看原始 JSON"}
+                </button>
+              </div>
+              {showRaw ? (
+                <pre style={{ ...TEXTAREA_STYLE, fontSize: 11, whiteSpace: "pre-wrap", overflow: "auto" }}>
+                  {JSON.stringify(result, null, 2)}
+                </pre>
+              ) : (
+                <ResultView result={result} />
+              )}
+            </div>
+          )}
+          {!result && !loading && !error && (
+            <div style={{ textAlign: "center", padding: "32px 0", color: "#b4b2a9", fontSize: 13 }}>
+              点击右上角「运行分析」查看结果
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
