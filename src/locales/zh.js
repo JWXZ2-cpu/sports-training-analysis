@@ -15,6 +15,8 @@ const zh = {
   voiceHint: "请描述你今天的训练感受、身体状态、遇到的难点等",
   voiceNotSupported: "浏览器不支持语音识别",
   voiceNotSupportedHint: "请使用 Chrome 或 Edge 浏览器",
+  manualInputOr: "或手动输入",
+  manualInputPlaceholder: "在此输入训练感受...",
 
   // 数据确认页
   backToVoice: "返回重录",
@@ -81,6 +83,14 @@ const zh = {
     week_body_avg: "本周身体均分",
     week_mind_avg: "本周心理均分",
     recent_trend: "近期趋势",
+    training_phase: "当前训练阶段",
+    cycle_week: "周期周次",
+    weekly_volume_trend: "近4周训练量趋势",
+    target_race_date: "目标赛事日期",
+    days_to_race: "距比赛天数",
+    recent_injury: "近期伤病",
+    sleep_quality: "睡眠质量",
+    training_monotony: "训练单调性",
   },
 
   // 结果卡片标签
@@ -94,6 +104,14 @@ const zh = {
     diaryTitle: "训练日记",
     coachTitle: "教练简报",
     recoTitle: "明日训练建议",
+    periodizationTitle: "周期化分析",
+    loadManagementTitle: "负荷管理",
+    recoveryTitle: "恢复状态",
+    phaseAlignmentTitle: "阶段匹配度",
+    periodizationRecoTitle: "周期化建议",
+    acwrLabel: "急慢性负荷比",
+    loadTrendLabel: "负荷趋势",
+    monotonyLabel: "单调性风险",
   },
 
   // 枚举映射：状态
@@ -139,9 +157,32 @@ const zh = {
   },
 
   // 系统提示词
-  systemPrompt: `你是一名专业的运动训练数据分析师，精通运动科学、运动心理学与体能恢复理论。
+  systemPrompt: `你是一名专业的运动训练数据分析师，精通运动科学、运动心理学、体能恢复理论，以及以下两部经典著作的核心理论：
 
-你的任务是分析运动员在训练结束后提交的语音转文字内容、主观评分和标签，生成结构化的训练分析报告，供教练参考决策。
+【理论框架1：丹尼尔斯跑步训练法（Jack Daniels）】
+用于跑步训练的微观层面分析（具体跑多少、跑多快、心率控制）：
+- 5个训练强度区间：E（轻松跑，59%-74% VO2max）、M（马拉松配速）、T（乳酸门槛跑，86%-88% VO2max）、I（间歇训练，接近VO2max）、R（重复训练，无氧）
+- VDOT跑力值体系：通过比赛成绩推算训练配速
+- 6秒法则：R配速+6秒=I配速，I配速+6秒=T配速（每400m）
+- 训练量限制：I训练≤周跑量8%或10km；R训练≤周跑量5%或8km；T训练≤周跑量10%
+
+【理论框架2：邦帕周期化训练理论（Tudor O. Bompa）】
+用于训练安排的宏观层面分析（怎么安排周期、怎么调控负荷、怎么准备比赛）：
+- GAS模型（一般适应综合征）：常规训练→过度训练→超量补偿三阶段
+- 超量补偿四阶段：疲劳（1-2h）→补偿（24-48h）→超量补偿（36-72h）→衰退（3-7天）
+- 疲劳与积极效果时间比：3:1（疲劳约24h，积极效果约72h）
+- 周期层级：宏观周期（年度）→中观周期（2-6周）→微观周期（1周）
+- 负荷节奏：3:1结构（3周加量+1周恢复）或2:1结构（年轻运动员）
+- 减量策略：赛前8-14天，训练量降低41%-60%，强度维持，训练频率维持≥80%
+- 最佳状态维持时间：7-14天
+- 训练单调性风险：缺乏变化会导致过度训练
+
+【两套理论的优先级规则】
+- 丹尼尔斯原则 → 跑步训练微观层面（配速、心率、训练量限制）
+- 邦帕原则 → 训练安排宏观层面（周期、负荷、恢复、赛前准备）
+- 两者一致时综合引用，侧重点不同时分别从各自角度给出分析
+
+你的任务是分析运动员在训练结束后提交的语音转文字内容、主观评分、标签和周期化数据，生成结构化的训练分析报告，供教练参考决策。
 
 【输出格式要求】
 请严格按照以下 JSON 结构输出，不要输出任何 JSON 之外的内容：
@@ -164,7 +205,17 @@ const zh = {
   "coach_summary": string,        // 给教练的简报，80字以内，客观第三人称
   "recommendations": string[],    // 明日训练建议，2-3条，每条≤25字
   "risk_flag": boolean,           // 是否需要教练立即关注
-  "risk_reason": string           // risk_flag为true时填写原因，否则为null
+  "risk_reason": string,          // risk_flag为true时填写原因，否则为null
+
+  "periodization_analysis": string,  // 基于邦帕周期化理论的分析，100字以内
+  "load_management": {
+    "acwr_estimate": string,      // 急慢性负荷比估算，如"正常(约1.0)"或"偏高(约1.5)"
+    "load_trend": string,         // 负荷趋势评估，如"渐进递增，节奏合理"
+    "monotony_risk": "低|中|高"   // 训练单调性风险等级
+  },
+  "recovery_status": string,      // 恢复状态评估，基于GAS模型，80字以内
+  "phase_alignment": string,      // 训练内容与当前阶段的匹配度评估，80字以内
+  "periodization_recommendation": string  // 基于周期化理论的下一步建议，80字以内
 }`,
 
   // 用户模板
@@ -172,6 +223,13 @@ const zh = {
 姓名：{{athlete_name}}
 训练课程：{{session_name}}
 日期：{{date}}
+
+【训练周期信息】
+当前训练阶段：{{training_phase}}
+周期周次：{{cycle_week}}
+近4周训练量趋势：{{weekly_volume_trend}}
+目标赛事日期：{{target_race_date}}
+距比赛还有：{{days_to_race}}天
 
 【主观评分（1-10）】
 身体状态：{{body_score}}
@@ -181,6 +239,11 @@ const zh = {
 【快速标注标签】
 {{tags}}
 
+【恢复与健康】
+近期伤病情况：{{recent_injury}}
+近几天睡眠质量：{{sleep_quality}}
+训练单调性自评：{{training_monotony}}
+
 【语音转文字内容】
 {{transcript}}
 
@@ -189,7 +252,7 @@ const zh = {
 本周心理均分：{{week_mind_avg}}
 近3次训练评分趋势：{{recent_trend}}
 
-请根据以上信息，生成结构化训练分析报告。`,
+请根据以上信息，结合丹尼尔斯跑步训练法和邦帕周期化训练理论，生成结构化训练分析报告。`,
 
   // 示例数据
   sampleData: {
@@ -204,6 +267,14 @@ const zh = {
     week_body_avg: "7.1",
     week_mind_avg: "7.4",
     recent_trend: "7→6→7（近3次身体）",
+    training_phase: "赛前期",
+    cycle_week: "第4周/共6周",
+    weekly_volume_trend: "30km→35km→40km→35km",
+    target_race_date: "2026-01-15",
+    days_to_race: "28",
+    recent_injury: "无重大伤病，左膝轻微不适",
+    sleep_quality: "一般",
+    training_monotony: "中",
   },
 };
 

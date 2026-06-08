@@ -103,6 +103,66 @@ export default function ResultView({ result }) {
           ))}
         </div>
       )}
+
+      {/* Periodization Analysis */}
+      {result.periodization_analysis && (
+        <div style={{ border: "0.5px solid #B8A9E8", borderRadius: 8, padding: "10px 12px", background: "#F5F3FF" }}>
+          <div style={{ fontSize: 11, color: "#5B4BAF", marginBottom: 5, fontWeight: 500 }}>{t.result.periodizationTitle}</div>
+          <div style={{ fontSize: 12, color: "#3C3489", lineHeight: 1.75 }}>{result.periodization_analysis}</div>
+        </div>
+      )}
+
+      {/* Load Management */}
+      {result.load_management && (
+        <div style={{ background: "#f8f7f4", borderRadius: 8, padding: "10px 12px" }}>
+          <div style={{ fontSize: 11, color: "#888", marginBottom: 8, fontWeight: 500 }}>{t.result.loadManagementTitle}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+            <div>
+              <div style={{ fontSize: 10, color: "#999", marginBottom: 2 }}>{t.result.acwrLabel}</div>
+              <div style={{ fontSize: 12, color: "#333", fontWeight: 500 }}>{result.load_management.acwr_estimate || "--"}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 10, color: "#999", marginBottom: 2 }}>{t.result.loadTrendLabel}</div>
+              <div style={{ fontSize: 12, color: "#333", fontWeight: 500 }}>{result.load_management.load_trend || "--"}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 10, color: "#999", marginBottom: 2 }}>{t.result.monotonyLabel}</div>
+              <Badge
+                text={result.load_management.monotony_risk || "--"}
+                style={{
+                  background: result.load_management.monotony_risk === "高" ? "#FCEBEB" : result.load_management.monotony_risk === "中" ? "#FAEEDA" : "#E1F5EE",
+                  color: result.load_management.monotony_risk === "高" ? "#A32D2D" : result.load_management.monotony_risk === "中" ? "#633806" : "#0F6E56",
+                  borderColor: result.load_management.monotony_risk === "高" ? "#F09595" : result.load_management.monotony_risk === "中" ? "#FAC775" : "#9FE1CB",
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Recovery Status */}
+      {result.recovery_status && (
+        <div style={{ border: "0.5px solid #9FE1CB", borderRadius: 8, padding: "10px 12px", background: "#f4fcf9" }}>
+          <div style={{ fontSize: 11, color: "#0F6E56", marginBottom: 5, fontWeight: 500 }}>{t.result.recoveryTitle}</div>
+          <div style={{ fontSize: 12, color: "#085041", lineHeight: 1.75 }}>{result.recovery_status}</div>
+        </div>
+      )}
+
+      {/* Phase Alignment */}
+      {result.phase_alignment && (
+        <div style={{ background: "#f8f7f4", borderRadius: 8, padding: "10px 12px" }}>
+          <div style={{ fontSize: 11, color: "#888", marginBottom: 5, fontWeight: 500 }}>{t.result.phaseAlignmentTitle}</div>
+          <div style={{ fontSize: 12, color: "#333", lineHeight: 1.75 }}>{result.phase_alignment}</div>
+        </div>
+      )}
+
+      {/* Periodization Recommendation */}
+      {result.periodization_recommendation && (
+        <div style={{ border: "0.5px solid #B8A9E8", borderRadius: 8, padding: "10px 12px", background: "#F5F3FF" }}>
+          <div style={{ fontSize: 11, color: "#5B4BAF", marginBottom: 5, fontWeight: 500 }}>{t.result.periodizationRecoTitle}</div>
+          <div style={{ fontSize: 12, color: "#3C3489", lineHeight: 1.75 }}>{result.periodization_recommendation}</div>
+        </div>
+      )}
     </div>
   );
 }

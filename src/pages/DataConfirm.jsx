@@ -50,6 +50,14 @@ export default function DataConfirm({ transcript, onAnalyze, onBack }) {
     week_body_avg: "",
     week_mind_avg: "",
     recent_trend: "",
+    training_phase: "",
+    cycle_week: "",
+    weekly_volume_trend: "",
+    target_race_date: "",
+    days_to_race: "",
+    recent_injury: "",
+    sleep_quality: "",
+    training_monotony: "",
   });
 
   const [selectedTags, setSelectedTags] = useState([]);
@@ -142,6 +150,133 @@ export default function DataConfirm({ transcript, onAnalyze, onBack }) {
           style={{ ...TEXTAREA_STYLE, minHeight: 80 }}
           placeholder={t.placeholderTranscript}
         />
+      </div>
+
+      {/* Periodization info (optional) */}
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ fontSize: 12, fontWeight: 500, color: "#2c2c2a", marginBottom: 10 }}>
+          {lang === "zh" ? "训练周期信息（选填）" : lang === "it" ? "Informazioni Periodizzazione (opzionale)" : "Periodization Info (optional)"}
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          <div>
+            <label style={{ fontSize: 11, color: "#888", display: "block", marginBottom: 3 }}>{t.fields.training_phase}</label>
+            <select value={fields.training_phase} onChange={(e) => updateField("training_phase", e.target.value)}
+              style={{ ...INPUT_STYLE, cursor: "pointer" }}>
+              <option value="">--</option>
+              {lang === "zh" ? (
+                <>
+                  <option value="基础期">基础期</option>
+                  <option value="强化期">强化期</option>
+                  <option value="赛前期">赛前期</option>
+                  <option value="竞赛期">竞赛期</option>
+                  <option value="过渡期">过渡期</option>
+                </>
+              ) : lang === "it" ? (
+                <>
+                  <option value="Base">Base</option>
+                  <option value="Sviluppo">Sviluppo</option>
+                  <option value="Pre-gara">Pre-gara</option>
+                  <option value="Gara">Gara</option>
+                  <option value="Transizione">Transizione</option>
+                </>
+              ) : (
+                <>
+                  <option value="Base">Base</option>
+                  <option value="Build">Build</option>
+                  <option value="Pre-competition">Pre-competition</option>
+                  <option value="Competition">Competition</option>
+                  <option value="Transition">Transition</option>
+                </>
+              )}
+            </select>
+          </div>
+          <div>
+            <label style={{ fontSize: 11, color: "#888", display: "block", marginBottom: 3 }}>{t.fields.cycle_week}</label>
+            <input value={fields.cycle_week} onChange={(e) => updateField("cycle_week", e.target.value)}
+              style={INPUT_STYLE} placeholder={lang === "zh" ? "如：第4周/共6周" : "e.g. Week 4/6"} />
+          </div>
+          <div style={{ gridColumn: "1 / -1" }}>
+            <label style={{ fontSize: 11, color: "#888", display: "block", marginBottom: 3 }}>{t.fields.weekly_volume_trend}</label>
+            <input value={fields.weekly_volume_trend} onChange={(e) => updateField("weekly_volume_trend", e.target.value)}
+              style={INPUT_STYLE} placeholder={lang === "zh" ? "如：30km→35km→40km→35km" : "e.g. 30km→35km→40km→35km"} />
+          </div>
+          <div>
+            <label style={{ fontSize: 11, color: "#888", display: "block", marginBottom: 3 }}>{t.fields.target_race_date}</label>
+            <input value={fields.target_race_date} onChange={(e) => updateField("target_race_date", e.target.value)}
+              style={INPUT_STYLE} type="date" />
+          </div>
+          <div>
+            <label style={{ fontSize: 11, color: "#888", display: "block", marginBottom: 3 }}>{t.fields.days_to_race}</label>
+            <input value={fields.days_to_race} onChange={(e) => updateField("days_to_race", e.target.value)}
+              style={INPUT_STYLE} type="number" placeholder="28" />
+          </div>
+        </div>
+      </div>
+
+      {/* Recovery & Health (optional) */}
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ fontSize: 12, fontWeight: 500, color: "#2c2c2a", marginBottom: 10 }}>
+          {lang === "zh" ? "恢复与健康（选填）" : lang === "it" ? "Recupero e Salute (opzionale)" : "Recovery & Health (optional)"}
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+          <div>
+            <label style={{ fontSize: 11, color: "#888", display: "block", marginBottom: 3 }}>{t.fields.recent_injury}</label>
+            <input value={fields.recent_injury} onChange={(e) => updateField("recent_injury", e.target.value)}
+              style={INPUT_STYLE} placeholder={lang === "zh" ? "无/左膝不适" : "None/Left knee"} />
+          </div>
+          <div>
+            <label style={{ fontSize: 11, color: "#888", display: "block", marginBottom: 3 }}>{t.fields.sleep_quality}</label>
+            <select value={fields.sleep_quality} onChange={(e) => updateField("sleep_quality", e.target.value)}
+              style={{ ...INPUT_STYLE, cursor: "pointer" }}>
+              <option value="">--</option>
+              {lang === "zh" ? (
+                <>
+                  <option value="好">好</option>
+                  <option value="一般">一般</option>
+                  <option value="差">差</option>
+                </>
+              ) : lang === "it" ? (
+                <>
+                  <option value="Buona">Buona</option>
+                  <option value="Discreta">Discreta</option>
+                  <option value="Scarsa">Scarsa</option>
+                </>
+              ) : (
+                <>
+                  <option value="Good">Good</option>
+                  <option value="Fair">Fair</option>
+                  <option value="Poor">Poor</option>
+                </>
+              )}
+            </select>
+          </div>
+          <div>
+            <label style={{ fontSize: 11, color: "#888", display: "block", marginBottom: 3 }}>{t.fields.training_monotony}</label>
+            <select value={fields.training_monotony} onChange={(e) => updateField("training_monotony", e.target.value)}
+              style={{ ...INPUT_STYLE, cursor: "pointer" }}>
+              <option value="">--</option>
+              {lang === "zh" ? (
+                <>
+                  <option value="低">低</option>
+                  <option value="中">中</option>
+                  <option value="高">高</option>
+                </>
+              ) : lang === "it" ? (
+                <>
+                  <option value="Basso">Basso</option>
+                  <option value="Medio">Medio</option>
+                  <option value="Alto">Alto</option>
+                </>
+              ) : (
+                <>
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                </>
+              )}
+            </select>
+          </div>
+        </div>
       </div>
 
       {/* History (optional) */}
