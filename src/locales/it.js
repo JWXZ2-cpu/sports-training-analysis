@@ -195,7 +195,7 @@ Per l'analisi macro dell'organizzazione dell'allenamento (come periodizzare, ges
 Il tuo compito è analizzare la trascrizione vocale dell'atleta dopo l'allenamento, i punteggi soggettivi, i tag e i dati di periodizzazione per generare un report strutturato.
 
 [Requisiti del formato di output]
-Produci l'output rigorosamente nel seguente formato JSON:
+Produci SOLO JSON puro nel seguente formato. NON avvolgere in blocchi di codice markdown. NON produrre alcun testo, spiegazioni o suggerimenti al di fuori del JSON:
 
 {
   "overall_score": number,

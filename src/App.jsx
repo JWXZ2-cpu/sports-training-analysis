@@ -72,13 +72,41 @@ export default function App() {
 
       // Robust JSON extraction
       let parsed = null;
-      const clean = text.replace(/```json|```/g, "").trim();
-      try { parsed = JSON.parse(clean); } catch {}
+
+      // Method 1: Try parsing the whole text directly
+      try { parsed = JSON.parse(text.trim()); } catch {}
+
+      // Method 2: Extract from markdown code blocks ```json ... ```
       if (!parsed) {
-        const match = clean.match(/\{[\s\S]*\}/);
-        if (match) {
-          try { parsed = JSON.parse(match[0]); } catch {}
+        const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (codeBlockMatch) {
+          try { parsed = JSON.parse(codeBlockMatch[1].trim()); } catch {}
         }
+      }
+
+      // Method 3: Find the first complete JSON object using bracket matching
+      if (!parsed) {
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          // Try to find the correct end of JSON by matching brackets
+          let depth = 0;
+          let endIndex = -1;
+          const candidate = jsonMatch[0];
+          for (let i = 0; i < candidate.length; i++) {
+            if (candidate[i] === '{') depth++;
+            if (candidate[i] === '}') depth--;
+            if (depth === 0) { endIndex = i; break; }
+          }
+          if (endIndex >= 0) {
+            try { parsed = JSON.parse(candidate.substring(0, endIndex + 1)); } catch {}
+          }
+        }
+      }
+
+      // Method 4: Remove markdown artifacts and try again
+      if (!parsed) {
+        const clean = text.replace(/```json|```/g, "").replace(/^[^{]*/, "").replace(/[^}]*$/, "").trim();
+        try { parsed = JSON.parse(clean); } catch {}
       }
       if (!parsed) {
         setError(t.errorPrefix + "AI 未返回有效 JSON" + t.errorSuffix);

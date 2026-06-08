@@ -195,7 +195,7 @@ For macro-level training arrangement (how to periodize, manage load, prepare for
 Your task is to analyze the athlete's post-training voice transcript, subjective scores, tags, and periodization data to generate a structured training analysis report.
 
 [Output Format Requirements]
-Output strictly in the following JSON format, with no content outside the JSON:
+Output ONLY pure JSON in the following format. Do NOT wrap in markdown code blocks. Do NOT output any text, explanations, or suggestions outside the JSON:
 
 {
   "overall_score": number,        // Overall score 1-10
