@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { athleteService, sessionService, notificationService, analyzeService } from "../services";
-import { startMimoAsr } from "../utils/mimoAsr.js";
+import { startMimoAsr, detectRecordingSupport } from "../utils/mimoAsr.js";
 import LoadingState from "../components/LoadingState.jsx";
 import BottomNav from "../components/BottomNav.jsx";
 import NotificationBell from "../components/NotificationBell.jsx";
@@ -16,8 +16,9 @@ export default function AthleteHome() {
   const [loading, setLoading] = useState(true);
   const [showProfile, setShowProfile] = useState(false);
 
-  // 浏览器是否支持录音
-  const supportsRecording = typeof MediaRecorder !== "undefined" && navigator.mediaDevices?.getUserMedia;
+  // 浏览器是否支持录音（支持 MediaRecorder 或 AudioContext 方案）
+  const recordingSupport = detectRecordingSupport();
+  const supportsRecording = recordingSupport !== "none";
 
   // 输入模式：voice 或 text（不支持录音时默认文字）
   const [inputMode, setInputMode] = useState(supportsRecording ? "voice" : "text");
@@ -704,7 +705,7 @@ export default function AthleteHome() {
               background: "rgba(212,164,76,0.08)", border: "1px solid rgba(212,164,76,0.15)",
               fontSize: 12, color: "var(--accent)", lineHeight: 1.5,
             }}>
-              ⚠️ 当前浏览器不支持语音输入，请使用文字输入。推荐使用 Chrome 或 Edge 浏览器获得完整体验。
+              ⚠️ 当前浏览器不支持语音输入，请使用文字输入。微信用户可点击右上角"在浏览器中打开"。
             </div>
           )}
 

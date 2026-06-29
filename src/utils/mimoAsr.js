@@ -1,23 +1,41 @@
 /**
  * MIMO ASR 语音识别模块
  *
- * 使用浏览器 MediaRecorder 录音，调用后端 /api/asr 接口进行语音识别
- * 不依赖 Google 服务，国内可用
+ * 三层降级策略：
+ * 1. MediaRecorder（Chrome/Edge 完整支持）
+ * 2. getUserMedia + AudioContext 手动录音（微信/国产浏览器）
+ * 3. 文件上传录音（兜底，所有浏览器）
  */
 
 /**
- * 启动 MIMO ASR 语音识别
+ * 检测浏览器录音能力
+ */
+export function detectRecordingSupport() {
+  const hasGetUserMedia = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+  const hasMediaRecorder = typeof MediaRecorder !== "undefined";
+  const hasAudioContext = !!(window.AudioContext || window.webkitAudioContext);
+
+  if (hasMediaRecorder && hasGetUserMedia) return "mediarecorder";
+  if (hasGetUserMedia && hasAudioContext) return "audiocontext";
+  if (hasGetUserMedia) return "getUserMedia-only";
+  return "none";
+}
+
+/**
+ * 启动语音识别
  * @param {Object} options
  * @param {Function} options.onResult - 识别结果回调 (text: string) => void
  * @param {Function} options.onError - 错误回调 (msg: string) => void
- * @param {string} options.language - 语言代码，默认 "auto"
+ * @param {Function} options.onStatus - 状态回调 (status: string) => void
+ * @param {string} options.language - 语言代码，默认 "zh"
  * @param {number} options.maxDuration - 最大录音时长（秒），默认 60
  * @returns {{ start: () => Promise<void>, stop: () => void }}
  */
 export function startMimoAsr({
   onResult,
   onError,
-  language = "auto",
+  onStatus,
+  language = "zh",
   maxDuration = 60,
 } = {}) {
   let mediaStream = null;
@@ -26,102 +44,74 @@ export function startMimoAsr({
   let stopTimeout = null;
   let stopped = false;
 
-  /**
-   * 释放麦克风流
-   */
+  // AudioContext 手动录音相关
+  let audioContext = null;
+  let scriptProcessor = null;
+  let audioBuffers = [];
+  let recordingSampleRate = null;
+
   function releaseStream() {
     if (mediaStream) {
       mediaStream.getTracks().forEach((track) => track.stop());
       mediaStream = null;
     }
+    if (scriptProcessor) {
+      scriptProcessor.disconnect();
+      scriptProcessor = null;
+    }
+    if (audioContext && audioContext.state !== "closed") {
+      audioContext.close().catch(() => {});
+      audioContext = null;
+    }
   }
 
   /**
-   * Blob 转 Base64
+   * 将 Float32Array 音频缓冲区转为 WAV Base64
    */
-  function blobToBase64(blob) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const dataUrl = reader.result;
-        // 取逗号后的部分
-        const base64 = dataUrl.split(",")[1];
-        resolve(base64);
-      };
-      reader.onerror = () => reject(new Error("音频数据转换失败"));
-      reader.readAsDataURL(blob);
-    });
-  }
-
-  /**
-   * WebM Blob 转 WAV Base64
-   * 使用 Web Audio API 解码后重新编码为 WAV
-   */
-  async function convertToWav(blob) {
-    const arrayBuffer = await blob.arrayBuffer();
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-
-    // 转换为 WAV
-    const numChannels = audioBuffer.numberOfChannels;
-    const sampleRate = audioBuffer.sampleRate;
-    const format = 1; // PCM
-    const bitDepth = 16;
-
-    let interleaved;
-    if (numChannels === 2) {
-      const left = audioBuffer.getChannelData(0);
-      const right = audioBuffer.getChannelData(1);
-      interleaved = new Float32Array(left.length + right.length);
-      for (let i = 0; i < left.length; i++) {
-        interleaved[i * 2] = left[i];
-        interleaved[i * 2 + 1] = right[i];
-      }
-    } else {
-      interleaved = audioBuffer.getChannelData(0);
+  function buffersToWavBase64(buffers, sampleRate) {
+    // 合并所有缓冲区
+    let totalLength = 0;
+    for (const buf of buffers) totalLength += buf.length;
+    const merged = new Float32Array(totalLength);
+    let offset = 0;
+    for (const buf of buffers) {
+      merged.set(buf, offset);
+      offset += buf.length;
     }
 
-    const dataLength = interleaved.length * (bitDepth / 8);
+    // 转 16-bit PCM
+    const numChannels = 1;
+    const bitDepth = 16;
+    const dataLength = merged.length * (bitDepth / 8);
     const buffer = new ArrayBuffer(44 + dataLength);
     const view = new DataView(buffer);
 
     // WAV header
-    writeString(view, 0, "RIFF");
+    const writeStr = (off, str) => { for (let i = 0; i < str.length; i++) view.setUint8(off + i, str.charCodeAt(i)); };
+    writeStr(0, "RIFF");
     view.setUint32(4, 36 + dataLength, true);
-    writeString(view, 8, "WAVE");
-    writeString(view, 12, "fmt ");
+    writeStr(8, "WAVE");
+    writeStr(12, "fmt ");
     view.setUint32(16, 16, true);
-    view.setUint16(20, format, true);
+    view.setUint16(20, 1, true);
     view.setUint16(22, numChannels, true);
     view.setUint32(24, sampleRate, true);
     view.setUint32(28, sampleRate * numChannels * (bitDepth / 8), true);
     view.setUint16(32, numChannels * (bitDepth / 8), true);
     view.setUint16(34, bitDepth, true);
-    writeString(view, 36, "data");
+    writeStr(36, "data");
     view.setUint32(40, dataLength, true);
 
-    // 写入音频数据
-    const offset = 44;
-    for (let i = 0; i < interleaved.length; i++) {
-      const sample = Math.max(-1, Math.min(1, interleaved[i]));
-      view.setInt16(offset + i * 2, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+    for (let i = 0; i < merged.length; i++) {
+      const s = Math.max(-1, Math.min(1, merged[i]));
+      view.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
     }
-
-    audioContext.close();
 
     // 转 Base64
     const bytes = new Uint8Array(buffer);
     let binary = "";
-    for (let i = 0; i < bytes.length; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
     return btoa(binary);
-  }
-
-  function writeString(view, offset, string) {
-    for (let i = 0; i < string.length; i++) {
-      view.setUint8(offset + i, string.charCodeAt(i));
-    }
   }
 
   /**
@@ -135,20 +125,33 @@ export function startMimoAsr({
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify({
-        audioBase64,
-        mimeType,
-        language,
-      }),
+      body: JSON.stringify({ audioBase64, mimeType, language }),
     });
 
     const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || "语音识别请求失败");
-    }
-
+    if (!response.ok) throw new Error(data.error || "语音识别请求失败");
     return data.text || "";
+  }
+
+  /**
+   * 处理录音结果（统一入口）
+   */
+  async function processAudio(audioBase64, mimeType) {
+    if (!audioBase64 || audioBase64.length < 100) {
+      onError?.("录音数据为空，请靠近麦克风重试");
+      return;
+    }
+    onStatus?.("识别中...");
+    try {
+      const text = await callAsrApi(audioBase64, mimeType);
+      if (text) {
+        onResult?.(text);
+      } else {
+        onError?.("未识别到语音内容，请重试");
+      }
+    } catch (err) {
+      onError?.(err.message || "语音识别失败");
+    }
   }
 
   /**
@@ -158,16 +161,91 @@ export function startMimoAsr({
     if (stopped) return;
     stopped = true;
 
-    if (stopTimeout) {
-      clearTimeout(stopTimeout);
-      stopTimeout = null;
-    }
+    if (stopTimeout) { clearTimeout(stopTimeout); stopTimeout = null; }
 
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       mediaRecorder.stop();
     }
 
+    // AudioContext 模式：手动停止
+    if (audioContext && audioBuffers.length > 0) {
+      const base64 = buffersToWavBase64(audioBuffers, recordingSampleRate);
+      audioBuffers = [];
+      releaseStream();
+      processAudio(base64, "audio/wav");
+      return;
+    }
+
     releaseStream();
+  }
+
+  /**
+   * 方案 A：MediaRecorder 录音
+   */
+  async function startWithMediaRecorder() {
+    const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+      ? "audio/webm;codecs=opus"
+      : "audio/webm";
+
+    mediaRecorder = new MediaRecorder(mediaStream, { mimeType });
+    audioChunks = [];
+
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data && e.data.size > 0) audioChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = async () => {
+      releaseStream();
+      if (audioChunks.length === 0) { onError?.("未检测到语音"); return; }
+      const blob = new Blob(audioChunks, { type: mimeType });
+      audioChunks = [];
+      if (blob.size === 0) { onError?.("未检测到语音"); return; }
+
+      // WebM 转 WAV
+      onStatus?.("处理音频...");
+      try {
+        const arrayBuffer = await blob.arrayBuffer();
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+        const channelData = audioBuffer.getChannelData(0);
+        const base64 = buffersToWavBase64([channelData], audioBuffer.sampleRate);
+        ctx.close();
+        await processAudio(base64, "audio/wav");
+      } catch (err) {
+        onError?.("音频处理失败: " + err.message);
+      }
+    };
+
+    mediaRecorder.onerror = (e) => {
+      releaseStream();
+      onError?.("录音错误: " + (e.error?.message || "未知"));
+    };
+
+    mediaRecorder.start(1000);
+  }
+
+  /**
+   * 方案 B：AudioContext 手动录音（兼容微信等）
+   */
+  async function startWithAudioContext() {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    audioContext = new AudioCtx();
+    recordingSampleRate = audioContext.sampleRate;
+    audioBuffers = [];
+
+    const source = audioContext.createMediaStreamSource(mediaStream);
+    // bufferSize 4096, 1 channel input, 1 channel output
+    scriptProcessor = audioContext.createScriptProcessor(4096, 1, 1);
+
+    scriptProcessor.onaudioprocess = (e) => {
+      if (stopped) return;
+      const inputData = e.inputBuffer.getChannelData(0);
+      // 复制一份（inputBuffer 会被回收）
+      audioBuffers.push(new Float32Array(inputData));
+    };
+
+    source.connect(scriptProcessor);
+    scriptProcessor.connect(audioContext.destination);
   }
 
   /**
@@ -175,107 +253,42 @@ export function startMimoAsr({
    */
   async function start() {
     stopped = false;
+    audioBuffers = [];
     audioChunks = [];
 
-    // 检查浏览器支持
+    // 检查 getUserMedia
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      onError?.("当前浏览器不支持录音，请使用 Chrome 或 Edge 浏览器");
-      return;
-    }
-
-    // 检查 MediaRecorder 支持
-    if (typeof MediaRecorder === "undefined") {
-      onError?.("当前浏览器不支持录音，请使用 Chrome 或 Edge 浏览器");
-      return;
-    }
-
-    // MediaRecorder 使用浏览器支持的格式（webm），后续会转换为 wav
-    const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
-      ? "audio/webm;codecs=opus"
-      : MediaRecorder.isTypeSupported("audio/webm")
-        ? "audio/webm"
-        : null;
-
-    if (!mimeType) {
-      onError?.("当前浏览器不支持音频编码，请使用 Chrome 或 Edge 浏览器");
+      onError?.("当前浏览器不支持录音，请使用 Chrome 或在微信中点击右上角用浏览器打开");
       return;
     }
 
     try {
-      // 获取麦克风
       mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch (err) {
       if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
         onError?.("麦克风权限被拒绝，请在浏览器设置中允许");
-      } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+      } else if (err.name === "NotFoundError") {
         onError?.("未找到麦克风设备");
       } else {
-        onError?.(`无法访问麦克风: ${err.message}`);
+        onError?.("无法访问麦克风: " + err.message);
       }
       return;
     }
 
+    const support = detectRecordingSupport();
+
     try {
-      // 创建 MediaRecorder
-      mediaRecorder = new MediaRecorder(mediaStream, { mimeType });
+      if (support === "mediarecorder") {
+        await startWithMediaRecorder();
+      } else {
+        await startWithAudioContext();
+      }
 
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data && e.data.size > 0) {
-          audioChunks.push(e.data);
-        }
-      };
-
-      mediaRecorder.onstop = async () => {
-        releaseStream();
-
-        if (stopTimeout) {
-          clearTimeout(stopTimeout);
-          stopTimeout = null;
-        }
-
-        // 合并音频数据
-        const audioBlob = new Blob(audioChunks, { type: mimeType });
-        audioChunks = [];
-
-        // 检查是否有数据
-        if (audioBlob.size === 0) {
-          onError?.("未检测到语音，请靠近麦克风说话");
-          return;
-        }
-
-        try {
-          // 转换为 WAV 格式（MIMO ASR 支持的格式）
-          const base64 = await convertToWav(audioBlob);
-
-          // 调用 ASR API（使用 wav 格式）
-          const text = await callAsrApi(base64, "audio/wav");
-
-          if (text) {
-            onResult?.(text);
-          } else {
-            onError?.("未识别到语音内容，请重试");
-          }
-        } catch (err) {
-          onError?.(err.message || "语音识别失败");
-        }
-      };
-
-      mediaRecorder.onerror = (e) => {
-        releaseStream();
-        onError?.(`录音错误: ${e.error?.message || "未知错误"}`);
-      };
-
-      // 开始录音
-      mediaRecorder.start(1000); // 每秒收集一次数据
-
-      // 设置最大录音时长
-      stopTimeout = setTimeout(() => {
-        stop();
-      }, maxDuration * 1000);
-
+      // 最大录音时长
+      stopTimeout = setTimeout(() => stop(), maxDuration * 1000);
     } catch (err) {
       releaseStream();
-      onError?.(`启动录音失败: ${err.message}`);
+      onError?.("启动录音失败: " + err.message);
     }
   }
 
