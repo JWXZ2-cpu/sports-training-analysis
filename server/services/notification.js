@@ -129,6 +129,16 @@ export function notifyTrainingSubmitted(athleteId, sessionId, sessionInfo) {
       ? sessionInfo.transcript.substring(0, 50) + (sessionInfo.transcript.length > 50 ? "..." : "")
       : "已提交训练反馈";
 
+    // 去重：今天是否已经给该运动员发过 training_feedback 通知
+    const today = new Date().toISOString().split("T")[0];
+    const existing = db.notifications.findOne({
+      type: "training_feedback",
+      related_athlete_id: athleteId,
+    });
+    if (existing && existing.created_at && existing.created_at.startsWith(today)) {
+      return; // 今天已发过，跳过
+    }
+
     // 1. 给运动员自己发通知
     createNotification({
       recipient_id: athleteId,
