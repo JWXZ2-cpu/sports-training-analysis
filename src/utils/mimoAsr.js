@@ -179,7 +179,13 @@ export function startMimoAsr({
 
     // 检查浏览器支持
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      onError?.("当前浏览器不支持录音功能");
+      onError?.("当前浏览器不支持录音，请使用 Chrome 或 Edge 浏览器");
+      return;
+    }
+
+    // 检查 MediaRecorder 支持
+    if (typeof MediaRecorder === "undefined") {
+      onError?.("当前浏览器不支持录音，请使用 Chrome 或 Edge 浏览器");
       return;
     }
 
@@ -191,7 +197,7 @@ export function startMimoAsr({
         : null;
 
     if (!mimeType) {
-      onError?.("当前浏览器不支持录音功能");
+      onError?.("当前浏览器不支持音频编码，请使用 Chrome 或 Edge 浏览器");
       return;
     }
 

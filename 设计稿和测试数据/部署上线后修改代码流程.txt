@@ -1,0 +1,27 @@
+每次改完代码，三步搞定
+
+# 1. SSH 连上服务器
+ssh root@47.105.65.78
+
+# 2. 进入项目目录（你可以用这个命令找到它）
+pm2 list    # 看看 pm2 跑的是哪个路径
+
+# 3. 拉取 + 构建 + 重启
+git pull && npm run build && pm2 restart all
+本地开发的完整循环
+
+本地改代码
+  ↓
+npm run dev:all  （本地预览）
+  ↓
+确认没问题 → git add . && git commit -m "xxx" && git push
+  ↓
+服务器：git pull && npm run build && pm2 restart all
+  ↓
+刷新 http://47.105.65.78 看效果
+补充说明
+场景	操作
+只改了前端（JSX/CSS）	git pull && npm run build && pm2 restart all
+只改了后端（routes/server）	git pull && pm2 restart all（不需要 build）
+改了 .env 配置	pm2 restart all（重启才生效）
+新增了 npm 依赖	git pull && npm install && npm run build && pm2 restart all

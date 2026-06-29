@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { resetOnboardingCache } from "../components/AthleteGuard.jsx";
 
 const AuthContext = createContext(null);
 
@@ -80,6 +81,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("token");
     setToken(null);
     setUser(null);
+    resetOnboardingCache();
   };
 
   // 带认证的fetch封装

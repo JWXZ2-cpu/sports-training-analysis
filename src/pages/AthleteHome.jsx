@@ -16,8 +16,11 @@ export default function AthleteHome() {
   const [loading, setLoading] = useState(true);
   const [showProfile, setShowProfile] = useState(false);
 
-  // 输入模式：voice 或 text
-  const [inputMode, setInputMode] = useState("voice");
+  // 浏览器是否支持录音
+  const supportsRecording = typeof MediaRecorder !== "undefined" && navigator.mediaDevices?.getUserMedia;
+
+  // 输入模式：voice 或 text（不支持录音时默认文字）
+  const [inputMode, setInputMode] = useState(supportsRecording ? "voice" : "text");
   const [textInput, setTextInput] = useState("");
   const MAX_CHARS = 500;
 
@@ -694,11 +697,23 @@ export default function AthleteHome() {
 
         {/* Voice / Text Input Section */}
         <div style={{ marginTop: 44, animation: "fadeUp 0.5s ease 0.2s both" }}>
+          {/* 不支持录音的提示 */}
+          {!supportsRecording && (
+            <div style={{
+              marginBottom: 16, padding: "10px 14px", borderRadius: 10,
+              background: "rgba(212,164,76,0.08)", border: "1px solid rgba(212,164,76,0.15)",
+              fontSize: 12, color: "var(--accent)", lineHeight: 1.5,
+            }}>
+              ⚠️ 当前浏览器不支持语音输入，请使用文字输入。推荐使用 Chrome 或 Edge 浏览器获得完整体验。
+            </div>
+          )}
+
           {/* Mode Toggle */}
           <div style={{
             display: "flex", padding: 3, background: "var(--surface)",
             borderRadius: 10, border: "1px solid var(--border)", marginBottom: 20,
           }}>
+            {supportsRecording && (
             <button onClick={() => { setInputMode("voice"); setShowVoiceResult(false); setTranscript(""); }} style={{
               flex: 1, padding: "10px 0", border: "none", borderRadius: 7,
               background: inputMode === "voice" ? "var(--accent-dim)" : "transparent",
@@ -713,6 +728,7 @@ export default function AthleteHome() {
               </svg>
               语音录入
             </button>
+            )}
             <button onClick={() => { setInputMode("text"); if (isRecording) { asrRef.current?.stop(); clearInterval(timerRef.current); setIsRecording(false); } }} style={{
               flex: 1, padding: "10px 0", border: "none", borderRadius: 7,
               background: inputMode === "text" ? "var(--accent-dim)" : "transparent",
