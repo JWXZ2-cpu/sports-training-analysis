@@ -59,7 +59,7 @@ export default function AthleteOnboarding({ onComplete, isUpdate = false }) {
     if (!raceTime) { setError(isZh ? "请输入完赛时间" : "Please enter race time"); return; }
     setCalculating(true); setError(null); setResult(null);
     try {
-      const res = await authFetch("/api/athlete/onboarding/vdot", {
+      const res = await authFetch("/athlete/onboarding/vdot", {
         method: "POST",
         body: JSON.stringify({ raceType, raceTime, maxHR: Number(maxHR) || 190 }),
       });
@@ -79,7 +79,7 @@ export default function AthleteOnboarding({ onComplete, isUpdate = false }) {
     }
     setCalculating(true); setError(null); setResult(null);
     try {
-      const res = await authFetch("/api/athlete/onboarding/conconi", {
+      const res = await authFetch("/athlete/onboarding/conconi", {
         method: "POST",
         body: JSON.stringify({ ...conconi, maxHR: Number(mhr) }),
       });
@@ -95,7 +95,7 @@ export default function AthleteOnboarding({ onComplete, isUpdate = false }) {
     if (!result) return;
     setSaving(true);
     try {
-      const res = await authFetch("/api/athlete/onboarding/save", {
+      const res = await authFetch("/athlete/onboarding/save", {
         method: "POST",
         body: JSON.stringify({
           method: result.method,
