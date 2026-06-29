@@ -80,6 +80,9 @@ app.post("/api/analyze", authenticateToken, async (req, res) => {
   try {
     const combinedContent = `${system}\n\n---\n\n${user}`;
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 120000); // 2 分钟超时
+
     const response = await fetch(`${API_BASE_URL}/chat/completions`, {
       method: "POST",
       headers: {
@@ -91,7 +94,10 @@ app.post("/api/analyze", authenticateToken, async (req, res) => {
         max_tokens: 4096,
         messages: [{ role: "user", content: combinedContent }],
       }),
+      signal: controller.signal,
     });
+
+    clearTimeout(timeout);
 
     const responseText = await response.text();
 
@@ -103,6 +109,11 @@ app.post("/api/analyze", authenticateToken, async (req, res) => {
     const text = data.choices?.[0]?.message?.content || "";
     res.json({ content: [{ text }] });
   } catch (err) {
+    if (err.name === "AbortError") {
+      console.error("[AI] 请求超时 (120s)");
+      return res.status(504).json({ error: "AI 分析超时，请稍后重试" });
+    }
+    console.error("[AI] 请求失败:", err.message);
     res.status(500).json({ error: `服务器错误: ${err.message}` });
   }
 });
