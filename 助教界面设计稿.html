@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>助教工作台</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0D0C0A;
+            --surface: #171613;
+            --card: #1F1E19;
+            --card-hover: #28261F;
+            --border: rgba(255,255,255,0.06);
+            --border-light: rgba(255,255,255,0.10);
+            --accent: #D4A44C;
+            --accent-glow: rgba(212,164,76,0.20);
+            --accent-dim: rgba(212,164,76,0.10);
+            --text: #F0EBE0;
+            --text-secondary: #8A8478;
+            --text-dim: #4A4640;
+            --green: #6BBF6E;
+            --green-dim: rgba(107,191,110,0.12);
+            --amber: #E8A849;
+            --amber-dim: rgba(232,168,73,0.12);
+            --red: #D45C5C;
+            --red-dim: rgba(212,92,92,0.12);
+            --blue: #5C9FD4;
+            --blue-dim: rgba(92,159,212,0.12);
+            --purple: #9B7FD4;
+            --purple-dim: rgba(155,127,212,0.12);
+            --radius: 16px;
+            --radius-sm: 10px;
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg); color: var(--text);
+            -webkit-font-smoothing: antialiased; overflow-x: hidden;
+        }
+
+        .grain { position: fixed; inset: 0; pointer-events: none; z-index: 9999; opacity: 0.025; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-repeat: repeat; }
+
+        .app { max-width: 430px; margin: 0 auto; min-height: 100vh; position: relative; overflow: hidden; background: radial-gradient(ellipse at 25% 10%, rgba(42,36,22,0.35) 0%, transparent 50%), radial-gradient(ellipse at 75% 85%, rgba(30,24,18,0.25) 0%, transparent 50%), var(--bg); }
+
+        /* Pages */
+        .page { display: none; padding: 16px 22px 110px; width: 100%; overflow-x: hidden; }
+        .page.active { display: block; animation: pageIn 0.35s ease forwards; }
+        @keyframes pageIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Header — always visible */
+        .header { display: flex; justify-content: space-between; align-items: flex-start; padding: 20px 22px 0; }
+        .header-compact { display: none; align-items: center; justify-content: space-between; padding: 16px 22px 0; }
+        .header-compact .page-title-inline { font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+        .header-compact .avatar-ring { width: 38px; height: 38px; padding: 2px; }
+        .header-compact .avatar { font-size: 14px; }
+        body.mode-home .header { display: flex; }
+        body.mode-home .header-compact { display: none; }
+        body.mode-page .header { display: none; }
+        body.mode-page .header-compact { display: flex; }
+
+        .greeting-small { font-size: 14px; font-weight: 400; color: var(--text-secondary); }
+        .greeting-name { font-size: 28px; font-weight: 700; color: var(--text); margin-top: 2px; letter-spacing: -0.01em; }
+        .greeting-sub { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+        .avatar-ring { width: 46px; height: 46px; border-radius: 50%; padding: 2.5px; background: linear-gradient(135deg, var(--accent) 0%, #E87040 100%); flex-shrink: 0; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.3s ease; }
+        .avatar-ring:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--accent-glow); }
+        .avatar { width: 100%; height: 100%; border-radius: 50%; background: var(--card); display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 600; color: var(--accent); }
+
+        /* Sheet */
+        .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .sheet-overlay.open { opacity: 1; pointer-events: auto; }
+        .sheet { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%) translateY(100%); max-width: 430px; width: 100%; background: var(--surface); border-radius: 20px 20px 0 0; z-index: 201; transition: transform 0.35s cubic-bezier(0.32,0.72,0,1); padding: 0 24px env(safe-area-inset-bottom, 20px); max-height: 90vh; overflow-y: auto; }
+        .sheet.open { transform: translateX(-50%) translateY(0); }
+        .sheet-handle-area { display: flex; justify-content: center; padding: 12px 0 8px; cursor: grab; }
+        .sheet-handle { width: 36px; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.12); }
+        .sheet-header { display: flex; flex-direction: column; align-items: center; padding: 8px 0 24px; }
+        .sheet-avatar-ring { width: 72px; height: 72px; border-radius: 50%; padding: 3px; background: linear-gradient(135deg, var(--accent) 0%, #E87040 100%); margin-bottom: 16px; }
+        .sheet-avatar { width: 100%; height: 100%; border-radius: 50%; background: var(--card); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; color: var(--accent); }
+        .sheet-name { font-size: 20px; font-weight: 700; color: var(--text); }
+        .sheet-role { margin-top: 6px; font-size: 12px; font-weight: 500; color: var(--accent); padding: 4px 14px; border-radius: 20px; background: var(--accent-dim); }
+        .sheet-info-group { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 24px; }
+        .sheet-info-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 16px; border-bottom: 1px solid var(--border); }
+        .sheet-info-row:last-child { border-bottom: none; }
+        .sheet-info-label { font-size: 13px; color: var(--text-dim); }
+        .sheet-info-value { font-size: 14px; color: var(--text); font-weight: 500; }
+        .sheet-logout { width: 100%; padding: 15px; border: 1px solid rgba(212,92,92,0.2); border-radius: var(--radius-sm); background: var(--red-dim); color: var(--red); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; margin-bottom: 8px; }
+        .sheet-logout:hover { background: rgba(212,92,92,0.18); border-color: rgba(212,92,92,0.3); }
+
+        /* Stat Row */
+        .stat-row { display: flex; gap: 10px; margin: 28px 0 24px; animation: fadeUp 0.5s ease 0.1s both; }
+        .stat-card { flex: 1; padding: 16px 12px; border-radius: var(--radius-sm); background: var(--card); border: 1px solid var(--border); text-align: center; }
+        .stat-value { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+        .stat-value.good { color: var(--green); }
+        .stat-value.amber { color: var(--amber); }
+        .stat-value.red { color: var(--red); }
+        .stat-value.accent { color: var(--accent); }
+        .stat-sub { font-size: 13px; font-weight: 400; opacity: 0.5; }
+        .stat-label { font-size: 11px; color: var(--text-dim); margin-top: 6px; font-weight: 500; }
+
+        /* Section Title */
+        .section-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 14px; letter-spacing: -0.01em; display: flex; justify-content: space-between; align-items: center; }
+        .section-link { font-size: 13px; color: var(--accent); font-weight: 500; cursor: pointer; border: none; background: none; font-family: inherit; }
+        .section-link:hover { text-decoration: underline; }
+
+        /* Alert Card */
+        .alert-section { margin-bottom: 28px; animation: fadeUp 0.5s ease 0.15s both; }
+        .alert-card { background: linear-gradient(135deg, rgba(60,24,20,0.5) 0%, rgba(30,26,22,0.4) 100%); border: 1px solid rgba(212,92,92,0.15); border-radius: var(--radius); padding: 18px; display: flex; gap: 14px; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+        .alert-card:hover { border-color: rgba(212,92,92,0.25); }
+        .alert-icon { width: 42px; height: 42px; border-radius: 12px; background: var(--red-dim); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+        .alert-content { flex: 1; }
+        .alert-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+        .alert-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+        .alert-badge { display: inline-block; margin-top: 8px; font-size: 11px; padding: 3px 10px; border-radius: 20px; background: var(--red-dim); color: var(--red); font-weight: 500; }
+
+        /* Athlete Card */
+        .athlete-list { display: flex; flex-direction: column; gap: 10px; animation: fadeUp 0.5s ease 0.2s both; }
+        .athlete-card { display: flex; align-items: center; gap: 14px; padding: 16px 18px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; transition: all 0.2s ease; }
+        .athlete-card:hover { border-color: var(--border-light); background: var(--card-hover); }
+        .athlete-card.warn { border-left: 3px solid var(--amber); }
+        .athlete-card.danger { border-left: 3px solid var(--red); }
+        .athlete-avatar { width: 40px; height: 40px; border-radius: 12px; background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; color: var(--accent); flex-shrink: 0; }
+        .athlete-info { flex: 1; min-width: 0; }
+        .athlete-name { font-size: 15px; font-weight: 600; color: var(--text); }
+        .athlete-meta { font-size: 12px; color: var(--text-dim); margin-top: 3px; }
+        .athlete-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+        .athlete-score { font-size: 18px; font-weight: 700; }
+        .athlete-status { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
+        .athlete-status.good { background: var(--green-dim); color: var(--green); }
+        .athlete-status.warn { background: var(--amber-dim); color: var(--amber); }
+        .athlete-status.danger { background: var(--red-dim); color: var(--red); }
+
+        /* Quick Actions */
+        .quick-actions { display: flex; gap: 10px; margin-top: 28px; animation: fadeUp 0.5s ease 0.25s both; }
+        .quick-btn { flex: 1; padding: 16px 14px; border-radius: var(--radius-sm); background: var(--card); border: 1px solid var(--border); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 10px; transition: all 0.2s ease; font-family: inherit; }
+        .quick-btn:hover { border-color: var(--accent); background: var(--accent-dim); }
+        .quick-btn:active { transform: scale(0.97); }
+        .quick-btn-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .quick-btn-icon.gold { background: var(--accent-dim); }
+        .quick-btn-icon.blue { background: var(--blue-dim); }
+        .quick-btn-label { font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+
+        /* Page Title */
+        .page-title { font-size: 24px; font-weight: 700; color: var(--text); margin-bottom: 24px; letter-spacing: -0.02em; }
+        .page-title-bar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+
+        /* Filter Pills */
+        .filter-pills { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; -webkit-overflow-scrolling: touch; animation: fadeUp 0.4s ease 0s both; }
+        .filter-pill { padding: 8px 16px; border-radius: 20px; background: var(--card); border: 1px solid var(--border); color: var(--text-secondary); font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+        .filter-pill.active { background: var(--accent-dim); border-color: rgba(212,164,76,0.15); color: var(--accent); }
+        .filter-pill:hover:not(.active) { border-color: var(--border-light); }
+
+        /* Feed Card */
+        .feed-card { display: flex; gap: 14px; padding: 18px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; cursor: pointer; transition: all 0.2s; animation: fadeUp 0.4s ease both; }
+        .feed-card:nth-of-type(1){animation-delay:.05s} .feed-card:nth-of-type(2){animation-delay:.1s} .feed-card:nth-of-type(3){animation-delay:.15s} .feed-card:nth-of-type(4){animation-delay:.2s} .feed-card:nth-of-type(5){animation-delay:.25s}
+        .feed-card:hover { border-color: var(--border-light); background: var(--card-hover); }
+        .feed-card.warn-card { border-left: 3px solid var(--amber); }
+        .feed-card.danger-card { border-left: 3px solid var(--red); }
+        .feed-avatar { width: 40px; height: 40px; border-radius: 12px; background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; color: var(--accent); flex-shrink: 0; }
+        .feed-body { flex: 1; min-width: 0; }
+        .feed-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .feed-name { font-size: 14px; font-weight: 600; color: var(--text); }
+        .feed-score { font-size: 18px; font-weight: 700; }
+        .feed-meta { font-size: 12px; color: var(--text-dim); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .feed-meta-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--text-dim); }
+        .feed-text { font-family: 'Noto Serif SC', serif; font-size: 13px; color: var(--text-secondary); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .feed-tags { display: flex; gap: 6px; margin-top: 10px; }
+        .feed-tag { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
+        .feed-tag.good { background: var(--green-dim); color: var(--green); }
+        .feed-tag.warn { background: var(--amber-dim); color: var(--amber); }
+        .feed-tag.danger { background: var(--red-dim); color: var(--red); }
+        .feed-tag.info { background: var(--blue-dim); color: var(--blue); }
+
+        /* Notification Page */
+        .notif-summary { display: flex; gap: 10px; margin-bottom: 24px; animation: fadeUp 0.4s ease 0s both; }
+        .notif-summary-item { flex: 1; padding: 14px 10px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); text-align: center; position: relative; overflow: hidden; }
+        .notif-summary-item::before { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; }
+        .notif-summary-item.red::before { background: var(--red); }
+        .notif-summary-item.amber::before { background: var(--accent); }
+        .notif-summary-item.blue::before { background: var(--blue); }
+        .notif-summary-num { font-size: 24px; font-weight: 700; line-height: 1; }
+        .notif-summary-label { font-size: 11px; color: var(--text-dim); margin-top: 5px; font-weight: 500; }
+        .notif-group-label { font-size: 12px; font-weight: 600; color: var(--text-dim); letter-spacing: 0.04em; text-transform: uppercase; margin: 24px 0 12px; padding-left: 4px; animation: fadeUp 0.3s ease both; }
+        .notif-group-label:first-of-type { margin-top: 0; }
+        .notif-card { display: flex; gap: 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 12px; cursor: pointer; transition: border-color 0.2s, background 0.2s; animation: fadeUp 0.4s ease both; position: relative; }
+        .notif-card:nth-child(1){animation-delay:.05s} .notif-card:nth-child(2){animation-delay:.1s} .notif-card:nth-child(3){animation-delay:.15s} .notif-card:nth-child(4){animation-delay:.2s}
+        .notif-card:hover { border-color: var(--border-light); background: var(--card-hover); }
+        .notif-card.unread { border-left: 3px solid var(--accent); }
+        .notif-card.unread::after { content: ''; position: absolute; top: 18px; right: 18px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+        .notif-card-icon { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+        .notif-card-icon.red { background: var(--red-dim); }
+        .notif-card-icon.green { background: var(--green-dim); }
+        .notif-card-icon.blue { background: var(--blue-dim); }
+        .notif-card-icon.amber { background: var(--accent-dim); }
+        .notif-card-body { flex: 1; min-width: 0; }
+        .notif-card-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 5px; padding-right: 16px; }
+        .notif-card-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.55; }
+        .notif-card-time { font-size: 11px; color: var(--text-dim); margin-top: 10px; display: flex; align-items: center; gap: 6px; }
+        .notif-card-time-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--text-dim); }
+        .notif-actions { display: flex; gap: 10px; margin-top: 20px; animation: fadeUp 0.4s ease 0.2s both; }
+        .notif-action-btn { flex: 1; padding: 13px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); color: var(--text-secondary); font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .notif-action-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+        .notif-action-btn svg { width: 15px; height: 15px; }
+
+        /* Athlete Detail Sheet */
+        .detail-sheet { max-height: 90vh; }
+        .detail-back { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--accent); cursor: pointer; background: none; border: none; font-family: inherit; font-weight: 500; margin-bottom: 16px; padding: 0; }
+        .detail-back:hover { text-decoration: underline; }
+        .detail-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+        .detail-avatar { width: 56px; height: 56px; border-radius: 16px; background: var(--card); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; color: var(--accent); }
+        .detail-name { font-size: 20px; font-weight: 700; color: var(--text); }
+        .detail-status { display: inline-block; margin-top: 6px; font-size: 12px; padding: 3px 12px; border-radius: 20px; font-weight: 500; }
+        .detail-records { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+        .detail-record { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; transition: all 0.2s; }
+        .detail-record:hover { border-color: var(--border-light); background: var(--card-hover); }
+        .detail-record-score { font-size: 20px; font-weight: 700; width: 36px; text-align: center; flex-shrink: 0; }
+        .detail-record-info { flex: 1; }
+        .detail-record-date { font-size: 12px; color: var(--text-dim); }
+        .detail-record-status { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 500; margin-left: 8px; }
+        .detail-record-tag { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+        .detail-note-area { margin-top: 8px; }
+        .detail-note-label { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+
+        /* Report Detail Sheet */
+        .report-sheet { max-height: 92vh; padding-bottom: 24px; }
+        .report-back { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--accent); cursor: pointer; background: none; border: none; font-family: inherit; font-weight: 500; margin-bottom: 20px; padding: 0; }
+        .report-back:hover { text-decoration: underline; }
+        .report-hero { text-align: center; margin-bottom: 24px; padding: 24px 20px; background: linear-gradient(145deg, rgba(31,30,25,0.95) 0%, rgba(23,22,19,0.95) 100%); border: 1px solid var(--border); border-radius: var(--radius); position: relative; overflow: hidden; }
+        .report-hero::before { content: ''; position: absolute; top: -40px; right: -40px; width: 140px; height: 140px; background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
+        .report-hero-name { font-size: 14px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
+        .report-hero-date { font-size: 12px; color: var(--text-dim); margin-bottom: 16px; }
+        .report-hero-score { font-size: 52px; font-weight: 700; color: var(--accent); letter-spacing: -0.03em; line-height: 1; }
+        .report-hero-score .unit { font-size: 20px; font-weight: 400; color: var(--text-dim); margin-left: 2px; }
+        .report-hero-row { display: flex; gap: 0; margin-top: 18px; border-top: 1px solid var(--border); padding-top: 16px; }
+        .report-hero-stat { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; }
+        .report-hero-stat + .report-hero-stat::before { content: ''; position: absolute; left: 0; top: 2px; bottom: 2px; width: 1px; background: var(--border); }
+        .report-hero-stat-num { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+        .report-hero-stat-label { font-size: 11px; color: var(--text-dim); margin-top: 4px; font-weight: 500; }
+        .report-alert { background: linear-gradient(135deg, rgba(60,24,20,0.5) 0%, rgba(30,26,22,0.4) 100%); border: 1px solid rgba(212,92,92,0.15); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 20px; display: flex; gap: 12px; align-items: flex-start; }
+        .report-alert-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+        .report-alert-title { font-size: 13px; font-weight: 600; color: var(--red); margin-bottom: 4px; }
+        .report-alert-text { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+        .report-section { margin-bottom: 22px; }
+        .report-section-header { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .report-section-header .sec-icon { font-size: 16px; }
+        .report-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
+        .report-feedback-text { font-family: 'Noto Serif SC', serif; font-size: 14px; line-height: 1.8; color: var(--text-secondary); }
+        .report-scores { display: flex; gap: 12px; margin-top: 14px; }
+        .report-score-pill { flex: 1; padding: 12px; background: var(--surface); border-radius: var(--radius-sm); text-align: center; border: 1px solid var(--border); }
+        .report-score-pill-label { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; font-weight: 500; }
+        .report-score-pill-val { font-size: 20px; font-weight: 700; color: var(--accent); }
+        .body-assess { display: flex; gap: 20px; align-items: center; }
+        .body-svg-wrap { flex-shrink: 0; width: 80px; }
+        .body-svg-wrap svg { display: block; }
+        .body-tags { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        .body-tag-item { display: flex; align-items: center; gap: 10px; }
+        .body-tag-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .body-tag-dot.red { background: var(--red); box-shadow: 0 0 8px rgba(212,92,92,0.4); }
+        .body-tag-dot.amber { background: var(--amber); box-shadow: 0 0 8px rgba(232,168,73,0.4); }
+        .body-tag-text { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+        .body-summary { font-family: 'Noto Serif SC', serif; font-size: 13px; color: var(--text-secondary); line-height: 1.7; margin-top: 14px; }
+        .emotion-grid { display: flex; gap: 10px; }
+        .emotion-item { flex: 1; padding: 14px 10px; background: var(--surface); border-radius: var(--radius-sm); text-align: center; border: 1px solid var(--border); }
+        .emotion-emoji { font-size: 24px; margin-bottom: 6px; }
+        .emotion-label { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; font-weight: 500; }
+        .emotion-value { font-size: 14px; font-weight: 600; color: var(--text); }
+        .emotion-sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+        .zone-bar { display: flex; gap: 3px; margin-bottom: 12px; }
+        .zone-seg { flex: 1; padding: 10px 0; text-align: center; background: var(--surface); border-radius: 8px; font-size: 12px; font-weight: 600; color: var(--text-dim); border: 1px solid var(--border); transition: all 0.3s; }
+        .zone-seg.active { background: var(--accent-dim); color: var(--accent); border-color: rgba(212,164,76,0.2); box-shadow: 0 0 12px rgba(212,164,76,0.1); }
+        .zone-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+        .report-diary-text { font-family: 'Noto Serif SC', serif; font-size: 14px; line-height: 1.8; color: var(--text-secondary); }
+        .report-briefing-text { font-size: 13px; color: var(--text-secondary); line-height: 1.6; padding: 14px 16px; background: var(--accent-dim); border-left: 3px solid var(--accent); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+        .report-suggest-list { list-style: none; counter-reset: suggest; }
+        .report-suggest-list li { counter-increment: suggest; padding: 12px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 8px; font-size: 13px; color: var(--text-secondary); line-height: 1.6; display: flex; gap: 12px; align-items: flex-start; }
+        .report-suggest-list li::before { content: counter(suggest); width: 22px; height: 22px; border-radius: 7px; background: var(--accent-dim); color: var(--accent); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+
+        /* Voice & Textarea */
+        .voice-note-btn { display: flex; align-items: center; gap: 8px; padding: 11px 16px; width: 100%; border: 1px dashed var(--border-light); border-radius: var(--radius-sm); background: none; color: var(--text-secondary); font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; justify-content: center; margin-bottom: 12px; }
+        .voice-note-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+        .voice-note-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+        .voice-note-btn.recording { border-color: var(--red); color: var(--red); background: var(--red-dim); border-style: solid; animation: recordPulse 1.5s ease infinite; }
+        @keyframes recordPulse { 0%,100% { box-shadow: 0 0 10px rgba(212,92,92,0.1); } 50% { box-shadow: 0 0 25px rgba(212,92,92,0.2); } }
+        .report-textarea { width: 100%; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-family: 'Noto Serif SC', serif; font-size: 14px; min-height: 100px; resize: vertical; line-height: 1.6; outline: none; transition: border-color 0.2s; }
+        .report-textarea:focus { border-color: var(--accent); }
+        .report-textarea::placeholder { color: var(--text-dim); }
+        .report-submit { width: 100%; padding: 15px; border: none; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--accent) 0%, #C08830 100%); color: var(--bg); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-top: 12px; }
+        .report-submit:hover { box-shadow: 0 0 30px var(--accent-glow); }
+        .report-submit:active { transform: scale(0.98); }
+
+        /* Bottom Nav — 3 tabs */
+        .nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); max-width: 430px; width: 100%; display: flex; justify-content: space-around; padding: 8px 8px; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: rgba(13,12,10,0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--border); z-index: 100; }
+        .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 0; border: none; background: none; cursor: pointer; color: var(--text-dim); font-family: inherit; font-size: 11px; font-weight: 500; transition: color 0.2s; position: relative; }
+        .nav-btn svg { width: 22px; height: 22px; stroke-width: 1.5; transition: transform 0.2s; }
+        .nav-btn.active { color: var(--accent); }
+        .nav-btn.active svg { transform: scale(1.08); }
+        .nav-btn .badge { position: absolute; top: 4px; right: 50%; transform: translateX(14px); min-width: 16px; height: 16px; padding: 0 5px; border-radius: 9px; background: var(--red); color: white; font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+        .hidden { display: none !important; }
+
+        @media (min-width: 431px) {
+            body { display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 20px 0; background: radial-gradient(ellipse at 30% 30%, rgba(30,26,18,0.5) 0%, transparent 60%), #080706; }
+            .app { border-radius: 24px; border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 0 0 1px rgba(0,0,0,0.3), 0 20px 80px rgba(0,0,0,0.5); overflow: hidden; min-height: min(900px, calc(100vh - 40px)); }
+            .nav { border-radius: 0 0 24px 24px; }
+        }
+    </style>
+</head>
+<body class="mode-home">
+
+<div class="grain"></div>
+<div class="app">
+    <!-- Header (home mode — full) -->
+    <div class="header" id="headerFull">
+        <div>
+            <div class="greeting-small" id="greetingText">晚上好，</div>
+            <div class="greeting-name">史助教</div>
+            <div class="greeting-sub">助理教练 · 恢复周</div>
+        </div>
+        <div class="avatar-ring" onclick="openSheet('profileSheet')" title="我的">
+            <div class="avatar">史</div>
+        </div>
+    </div>
+
+    <!-- Header (compact mode — other pages) -->
+    <div class="header-compact" id="headerCompact">
+        <span class="page-title-inline" id="compactTitle">记录</span>
+        <div class="avatar-ring" onclick="openSheet('profileSheet')" title="我的">
+            <div class="avatar">史</div>
+        </div>
+    </div>
+
+    <!-- ====== Page: 工作台 ====== -->
+    <section class="page active" id="page-home">
+        <div class="stat-row">
+            <div class="stat-card">
+                <div class="stat-value accent">2<span class="stat-sub"> 人</span></div>
+                <div class="stat-label">运动员</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value accent">6.5</div>
+                <div class="stat-label">团队均分</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value red">1<span class="stat-sub"> 人</span></div>
+                <div class="stat-label">预警人数</div>
+            </div>
+        </div>
+
+        <div class="alert-section">
+            <div class="section-title">需要关注的运动员</div>
+            <div class="alert-card" onclick="openAthleteDetail('wang')">
+                <div class="alert-icon">⚠️</div>
+                <div class="alert-content">
+                    <div class="alert-title">王队员</div>
+                    <div class="alert-desc">膝盖和跟腱疼痛，可能因负荷过高导致受伤风险</div>
+                    <span class="alert-badge">预警</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 28px;">
+            <div class="section-title">运动员状态 <button class="section-link" onclick="switchPage('page-records')">查看全部</button></div>
+            <div class="athlete-list">
+                <div class="athlete-card warn" onclick="openAthleteDetail('wang')">
+                    <div class="athlete-avatar">王</div>
+                    <div class="athlete-info">
+                        <div class="athlete-name">王队员</div>
+                        <div class="athlete-meta">最近训练: 2026-06-14</div>
+                    </div>
+                    <div class="athlete-right">
+                        <div class="athlete-score" style="color:var(--amber)">6.5</div>
+                        <span class="athlete-status warn">关注</span>
+                    </div>
+                </div>
+                <div class="athlete-card" onclick="openAthleteDetail('chen')">
+                    <div class="athlete-avatar">陈</div>
+                    <div class="athlete-info">
+                        <div class="athlete-name">陈队员</div>
+                        <div class="athlete-meta">最近训练: 2026-06-14</div>
+                    </div>
+                    <div class="athlete-right">
+                        <div class="athlete-score" style="color:var(--green)">7.5</div>
+                        <span class="athlete-status good">良好</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="quick-actions">
+            <button class="quick-btn" onclick="switchPage('page-records')">
+                <div class="quick-btn-icon gold">📝</div>
+                <span class="quick-btn-label">训练记录</span>
+            </button>
+            <button class="quick-btn" onclick="switchPage('page-notify')">
+                <div class="quick-btn-icon blue">🔔</div>
+                <span class="quick-btn-label">查看通知</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- ====== Page: 记录 ====== -->
+    <section class="page" id="page-records">
+        
+        <div class="filter-pills">
+            <button class="filter-pill active" onclick="filterRecords('all',this)">全部</button>
+            <button class="filter-pill" onclick="filterRecords('wang',this)">王队员</button>
+            <button class="filter-pill" onclick="filterRecords('chen',this)">陈队员</button>
+        </div>
+        <div id="recordFeed">
+            <div class="feed-card warn-card" data-athlete="wang" onclick="openReportDetail()">
+                <div class="feed-avatar">王</div>
+                <div class="feed-body">
+                    <div class="feed-header">
+                        <span class="feed-name">王队员</span>
+                        <span class="feed-score" style="color:var(--amber)">6.5</span>
+                    </div>
+                    <div class="feed-meta">
+                        <span>2026-06-14</span><span class="feed-meta-dot"></span><span>间歇训练</span>
+                    </div>
+                    <div class="feed-text">运动员报告力量训练后小腿紧张、膝盖疼痛及跟腱不适，因前期跑量过大导致疲劳累积。</div>
+                    <div class="feed-tags">
+                        <span class="feed-tag warn">关注</span>
+                        <span class="feed-tag info">教练已查看</span>
+                    </div>
+                </div>
+            </div>
+            <div class="feed-card" data-athlete="chen" onclick="openReportDetail()">
+                <div class="feed-avatar">陈</div>
+                <div class="feed-body">
+                    <div class="feed-header">
+                        <span class="feed-name">陈队员</span>
+                        <span class="feed-score" style="color:var(--green)">7.5</span>
+                    </div>
+                    <div class="feed-meta">
+                        <span>2026-06-14</span><span class="feed-meta-dot"></span><span>节奏跑</span>
+                    </div>
+                    <div class="feed-text">节奏跑完成良好，配速稳定，后半段略有掉速但整体表现在预期范围内。</div>
+                    <div class="feed-tags">
+                        <span class="feed-tag good">良好</span>
+                    </div>
+                </div>
+            </div>
+            <div class="feed-card warn-card" data-athlete="wang" onclick="openReportDetail()">
+                <div class="feed-avatar">王</div>
+                <div class="feed-body">
+                    <div class="feed-header">
+                        <span class="feed-name">王队员</span>
+                        <span class="feed-score" style="color:var(--amber)">5.5</span>
+                    </div>
+                    <div class="feed-meta">
+                        <span>2026-06-10</span><span class="feed-meta-dot"></span><span>力量训练</span>
+                    </div>
+                    <div class="feed-text">深蹲姿势需调整，膝盖有不适感。六角杠铃硬拉和臀推完成较好。</div>
+                    <div class="feed-tags">
+                        <span class="feed-tag warn">关注</span>
+                    </div>
+                </div>
+            </div>
+            <div class="feed-card danger-card" data-athlete="wang" onclick="openReportDetail()">
+                <div class="feed-avatar">王</div>
+                <div class="feed-body">
+                    <div class="feed-header">
+                        <span class="feed-name">王队员</span>
+                        <span class="feed-score" style="color:var(--red)">5.0</span>
+                    </div>
+                    <div class="feed-meta">
+                        <span>2026-06-10</span><span class="feed-meta-dot"></span><span>恢复训练</span>
+                    </div>
+                    <div class="feed-text">疲劳累积明显，多处疼痛报告。建议减少训练量，优先恢复。</div>
+                    <div class="feed-tags">
+                        <span class="feed-tag danger">预警</span>
+                        <span class="feed-tag" style="background:var(--purple-dim);color:var(--purple)">疲劳</span>
+                    </div>
+                </div>
+            </div>
+            <div class="feed-card" data-athlete="chen" onclick="openReportDetail()">
+                <div class="feed-avatar">陈</div>
+                <div class="feed-body">
+                    <div class="feed-header">
+                        <span class="feed-name">陈队员</span>
+                        <span class="feed-score" style="color:var(--green)">7.0</span>
+                    </div>
+                    <div class="feed-meta">
+                        <span>2026-06-10</span><span class="feed-meta-dot"></span><span>轻松跑</span>
+                    </div>
+                    <div class="feed-text">轻松跑完成，恢复情况良好，无不适报告。</div>
+                    <div class="feed-tags">
+                        <span class="feed-tag good">良好</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====== Page: 通知 ====== -->
+    <section class="page" id="page-notify">
+        <div class="page-title-bar">
+            <span></span>
+            <button class="section-link" id="markAllBtn" onclick="markAllRead()">全部已读</button>
+        </div>
+
+        <div class="notif-summary">
+            <div class="notif-summary-item red">
+                <div class="notif-summary-num" style="color:var(--red)">1</div>
+                <div class="notif-summary-label">预警</div>
+            </div>
+            <div class="notif-summary-item amber">
+                <div class="notif-summary-num" style="color:var(--accent)">2</div>
+                <div class="notif-summary-label">未读</div>
+            </div>
+            <div class="notif-summary-item blue">
+                <div class="notif-summary-num" style="color:var(--blue)">1</div>
+                <div class="notif-summary-label">已读</div>
+            </div>
+        </div>
+
+        <div class="notif-group-label">今天</div>
+
+        <div class="notif-card unread">
+            <div class="notif-card-icon red">⚠️</div>
+            <div class="notif-card-body">
+                <div class="notif-card-title">运动员预警</div>
+                <div class="notif-card-desc">王队员膝盖和跟腱疼痛，系统检测到可能因负荷过高导致受伤风险</div>
+                <div class="notif-card-time"><span class="notif-card-time-dot"></span>3小时前</div>
+            </div>
+        </div>
+
+        <div class="notif-card unread">
+            <div class="notif-card-icon green">📊</div>
+            <div class="notif-card-body">
+                <div class="notif-card-title">训练数据更新</div>
+                <div class="notif-card-desc">王队员6月14日训练数据已更新，综合评分6.5分，请及时查看并添加备注</div>
+                <div class="notif-card-time"><span class="notif-card-time-dot"></span>5小时前</div>
+            </div>
+        </div>
+
+        <div class="notif-group-label">昨天</div>
+
+        <div class="notif-card">
+            <div class="notif-card-icon amber">💊</div>
+            <div class="notif-card-body">
+                <div class="notif-card-title">治疗计划</div>
+                <div class="notif-card-desc">那医生提交了王队员治疗计划，请关注后续恢复进展</div>
+                <div class="notif-card-time"><span class="notif-card-time-dot"></span>昨天</div>
+            </div>
+        </div>
+
+        <div class="notif-card">
+            <div class="notif-card-icon blue">📋</div>
+            <div class="notif-card-body">
+                <div class="notif-card-title">教练计划调整</div>
+                <div class="notif-card-desc">王教练调整了本周训练计划，恢复周训练强度已降低</div>
+                <div class="notif-card-time"><span class="notif-card-time-dot"></span>昨天</div>
+            </div>
+        </div>
+
+        <div class="notif-actions">
+            <button class="notif-action-btn" onclick="markAllRead()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                全部标记已读
+            </button>
+            <button class="notif-action-btn" onclick="switchPage('page-home')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                返回工作台
+            </button>
+        </div>
+    </section>
+
+    <!-- ====== Bottom Nav — 3 tabs ====== -->
+    <nav class="nav">
+        <button class="nav-btn active" data-page="page-home" onclick="switchPage('page-home')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            <span>工作台</span>
+        </button>
+        <button class="nav-btn" data-page="page-records" onclick="switchPage('page-records')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <span>记录</span>
+        </button>
+        <button class="nav-btn" data-page="page-notify" onclick="switchPage('page-notify')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span>通知</span>
+            <span class="badge">2</span>
+        </button>
+    </nav>
+
+    <!-- ====== Profile Sheet ====== -->
+    <div class="sheet-overlay" id="profileOverlay" onclick="closeSheet('profileSheet')"></div>
+    <div class="sheet" id="profileSheet">
+        <div class="sheet-handle-area" onclick="closeSheet('profileSheet')"><div class="sheet-handle"></div></div>
+        <div class="sheet-header">
+            <div class="sheet-avatar-ring"><div class="sheet-avatar">史</div></div>
+            <div class="sheet-name">史助教</div>
+            <span class="sheet-role">助教</span>
+        </div>
+        <div class="sheet-info-group">
+            <div class="sheet-info-row"><span class="sheet-info-label">账号名</span><span class="sheet-info-value">史助教</span></div>
+            <div class="sheet-info-row"><span class="sheet-info-label">角色</span><span class="sheet-info-value">助教</span></div>
+            <div class="sheet-info-row"><span class="sheet-info-label">用户 ID</span><span class="sheet-info-value">5</span></div>
+        </div>
+        <button class="sheet-logout" onclick="closeSheet('profileSheet'); setTimeout(()=>alert('已退出登录'),300)">退出登录</button>
+    </div>
+
+    <!-- ====== Athlete Detail Sheet ====== -->
+    <div class="sheet-overlay" id="athleteOverlay" onclick="closeSheet('athleteSheet')"></div>
+    <div class="sheet detail-sheet" id="athleteSheet">
+        <div class="sheet-handle-area" onclick="closeSheet('athleteSheet')"><div class="sheet-handle"></div></div>
+        <button class="detail-back" onclick="closeSheet('athleteSheet')">← 返回工作台</button>
+        <div class="detail-header">
+            <div class="detail-avatar" id="athleteDetailAvatar">王</div>
+            <div>
+                <div class="detail-name" id="athleteDetailName">王队员</div>
+                <span class="detail-status" id="athleteDetailStatus" style="background:var(--amber-dim);color:var(--amber);">关注</span>
+            </div>
+        </div>
+        <div class="section-title" style="margin-top:0;">训练记录</div>
+        <div class="detail-records">
+            <div class="detail-record" onclick="openReportFromAthlete()">
+                <div class="detail-record-score" style="color:var(--amber)">6.5</div>
+                <div class="detail-record-info">
+                    <div class="detail-record-date">2026-06-14<span class="detail-record-status" style="background:var(--amber-dim);color:var(--amber)">关注</span></div>
+                </div>
+            </div>
+            <div class="detail-record" onclick="openReportFromAthlete()">
+                <div class="detail-record-score" style="color:var(--red)">5.5</div>
+                <div class="detail-record-info">
+                    <div class="detail-record-date">2026-06-10<span class="detail-record-status" style="background:var(--red-dim);color:var(--red)">预警</span></div>
+                </div>
+            </div>
+            <div class="detail-record" onclick="openReportFromAthlete()">
+                <div class="detail-record-score" style="color:var(--amber)">5.5</div>
+                <div class="detail-record-info">
+                    <div class="detail-record-date">2026-06-10<span class="detail-record-status" style="background:var(--amber-dim);color:var(--amber)">关注</span></div>
+                </div>
+            </div>
+            <div class="detail-record" onclick="openReportFromAthlete()">
+                <div class="detail-record-score" style="color:var(--red)">5.0</div>
+                <div class="detail-record-info">
+                    <div class="detail-record-date">2026-06-10<span class="detail-record-status" style="background:var(--red-dim);color:var(--red)">预警</span></div>
+                    <div class="detail-record-tag">疲劳</div>
+                </div>
+            </div>
+            <div class="detail-record" onclick="openReportFromAthlete()">
+                <div class="detail-record-score" style="color:var(--amber)">6.0</div>
+                <div class="detail-record-info">
+                    <div class="detail-record-date">2026-06-10<span class="detail-record-status" style="background:var(--amber-dim);color:var(--amber)">关注</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="detail-note-area">
+            <div class="detail-note-label">📝 添加训练备注</div>
+            <button class="voice-note-btn" id="athleteVoiceBtn" onclick="toggleVoice('athleteVoiceBtn','athleteVoiceLabel')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="1" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/></svg>
+                <span id="athleteVoiceLabel">语音输入备注</span>
+            </button>
+            <textarea class="report-textarea" placeholder="点击麦克风语音输入，或直接打字记录训练评价..."></textarea>
+            <button class="report-submit" onclick="alert('备注已提交')">提交备注</button>
+        </div>
+    </div>
+
+    <!-- ====== Report Detail Sheet ====== -->
+    <div class="sheet-overlay" id="reportOverlay" onclick="closeSheet('reportSheet')"></div>
+    <div class="sheet report-sheet" id="reportSheet">
+        <div class="sheet-handle-area" onclick="closeSheet('reportSheet')"><div class="sheet-handle"></div></div>
+        <button class="report-back" onclick="backToAthlete()">← 返回训练记录</button>
+
+        <div class="report-hero">
+            <div class="report-hero-name">王队员</div>
+            <div class="report-hero-date">2026-06-14 · 间歇训练</div>
+            <div class="report-hero-score">6.5<span class="unit"> / 10</span></div>
+            <div class="report-hero-row">
+                <div class="report-hero-stat">
+                    <div class="report-hero-stat-num" style="color:var(--green)">良好</div>
+                    <div class="report-hero-stat-label">训练质量</div>
+                </div>
+                <div class="report-hero-stat">
+                    <div class="report-hero-stat-num" style="color:var(--accent)">E区</div>
+                    <div class="report-hero-stat-label">强度区间</div>
+                </div>
+                <div class="report-hero-stat">
+                    <div class="report-hero-stat-num" style="color:var(--blue)">48</div>
+                    <div class="report-hero-stat-label">VDOT 估算</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="report-alert">
+            <div class="report-alert-icon">🚨</div>
+            <div>
+                <div class="report-alert-title">需立即关注</div>
+                <div class="report-alert-text">膝盖和跟腱疼痛，可能因负荷过高导致受伤风险</div>
+            </div>
+        </div>
+
+        <div class="report-section">
+            <div class="report-section-header"><span class="sec-icon">🎙️</span>运动员反馈</div>
+            <div class="report-card">
+                <div class="report-feedback-text">昨天做完了力量训练之后，感觉小腿有点紧张，可能是因为姿势不正确的原因。膝盖有点疼痛，应该是在深蹲环节的时候不太舒服。还有做完了六角杠铃硬拉和臀推之后，去做了加速跑。因为做力量训练的两天前跑得有点太多了，跟腱就不舒服，所以就没有跑加速跑。</div>
+                <div class="report-scores">
+                    <div class="report-score-pill">
+                        <div class="report-score-pill-label">身体</div>
+                        <div class="report-score-pill-val">6/10</div>
+                    </div>
+                    <div class="report-score-pill">
+                        <div class="report-score-pill-label">心理</div>
+                        <div class="report-score-pill-val">7/10</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="report-section">
+            <div class="report-section-header"><span class="sec-icon">🩺</span>身体状况评估</div>
+            <div class="report-card">
+                <div class="body-assess">
+                    <div class="body-svg-wrap">
+                        <svg viewBox="0 0 80 200" width="80" height="200">
+                            <circle cx="40" cy="16" r="12" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+                            <line x1="40" y1="28" x2="40" y2="38" stroke="rgba(255,255,255,0.08)" stroke-width="1.5" stroke-linecap="round"/>
+                            <line x1="26" y1="42" x2="54" y2="42" stroke="rgba(255,255,255,0.08)" stroke-width="1.5" stroke-linecap="round"/>
+                            <line x1="26" y1="42" x2="18" y2="85" stroke="rgba(255,255,255,0.08)" stroke-width="1.5" stroke-linecap="round"/>
+                            <line x1="54" y1="42" x2="62" y2="85" stroke="rgba(255,255,255,0.08)" stroke-width="1.5" stroke-linecap="round"/>
+                            <line x1="30" y1="42" x2="35" y2="108" stroke="rgba(255,255,255,0.08)" stroke-width="1.5" stroke-linecap="round"/>
+                            <line x1="50" y1="42" x2="45" y2="108" stroke="rgba(255,255,255,0.08)" stroke-width="1.5" stroke-linecap="round"/>
+                            <line x1="35" y1="108" x2="45" y2="108" stroke="rgba(255,255,255,0.08)" stroke-width="1.5" stroke-linecap="round"/>
+                            <line x1="37" y1="108" x2="33" y2="158" stroke="rgba(255,255,255,0.08)" stroke-width="1.5" stroke-linecap="round"/>
+                            <line x1="33" y1="158" x2="31" y2="190" stroke="rgba(255,255,255,0.08)" stroke-width="1.5" stroke-linecap="round"/>
+                            <line x1="43" y1="108" x2="47" y2="158" stroke="rgba(255,255,255,0.08)" stroke-width="1.5" stroke-linecap="round"/>
+                            <line x1="47" y1="158" x2="49" y2="190" stroke="rgba(255,255,255,0.08)" stroke-width="1.5" stroke-linecap="round"/>
+                            <circle cx="47" cy="133" r="8" fill="rgba(212,92,92,0.15)" stroke="#D45C5C" stroke-width="1.5"/>
+                            <circle cx="47" cy="133" r="14" fill="none" stroke="#D45C5C" stroke-width="0.8" opacity="0.3"><animate attributeName="r" values="14;18;14" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.3;0.08;0.3" dur="2s" repeatCount="indefinite"/></circle>
+                            <circle cx="48" cy="158" r="6" fill="rgba(232,168,73,0.15)" stroke="#E8A849" stroke-width="1.5"/>
+                            <circle cx="48" cy="158" r="11" fill="none" stroke="#E8A849" stroke-width="0.8" opacity="0.3"><animate attributeName="r" values="11;15;11" dur="2s" repeatCount="indefinite" begin="0.3s"/><animate attributeName="opacity" values="0.3;0.08;0.3" dur="2s" repeatCount="indefinite" begin="0.3s"/></circle>
+                            <circle cx="49" cy="178" r="5" fill="rgba(212,92,92,0.15)" stroke="#D45C5C" stroke-width="1.5"/>
+                            <circle cx="49" cy="178" r="10" fill="none" stroke="#D45C5C" stroke-width="0.8" opacity="0.3"><animate attributeName="r" values="10;14;10" dur="2s" repeatCount="indefinite" begin="0.6s"/><animate attributeName="opacity" values="0.3;0.08;0.3" dur="2s" repeatCount="indefinite" begin="0.6s"/></circle>
+                        </svg>
+                    </div>
+                    <div class="body-tags">
+                        <div class="body-tag-item"><span class="body-tag-dot amber"></span><span class="body-tag-text">小腿紧张</span></div>
+                        <div class="body-tag-item"><span class="body-tag-dot red"></span><span class="body-tag-text">膝盖疼痛</span></div>
+                        <div class="body-tag-item"><span class="body-tag-dot red"></span><span class="body-tag-text">跟腱不适</span></div>
+                        <div class="body-tag-item"><span class="body-tag-dot" style="background:var(--green);box-shadow:0 0 8px rgba(107,191,110,0.4)"></span><span class="body-tag-text">心理状态平稳</span></div>
+                    </div>
+                </div>
+                <div class="body-summary">"运动员报告力量训练后小腿紧张、膝盖疼痛及跟腱不适，因前期跑量过大导致疲劳累积。"</div>
+            </div>
+        </div>
+
+        <div class="report-section">
+            <div class="report-section-header"><span class="sec-icon">🧠</span>情绪与疲劳</div>
+            <div class="emotion-grid">
+                <div class="emotion-item">
+                    <div class="emotion-emoji">😐</div>
+                    <div class="emotion-label">情绪</div>
+                    <div class="emotion-value">中性</div>
+                    <div class="emotion-sub">置信度 70%</div>
+                </div>
+                <div class="emotion-item">
+                    <div class="emotion-emoji" style="font-size:20px;">💪</div>
+                    <div class="emotion-label">疲劳</div>
+                    <div class="emotion-value" style="color:var(--amber)">中</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="report-section">
+            <div class="report-section-header"><span class="sec-icon">📊</span>强度区间分析</div>
+            <div class="report-card">
+                <div class="zone-bar">
+                    <div class="zone-seg active">E</div>
+                    <div class="zone-seg">M</div>
+                    <div class="zone-seg">T</div>
+                    <div class="zone-seg">I</div>
+                    <div class="zone-seg">R</div>
+                </div>
+                <div class="zone-desc">训练强度符合E区目标，轻松完成，配速在计划范围内。</div>
+            </div>
+        </div>
+
+        <div class="report-section">
+            <div class="report-section-header"><span class="sec-icon">📓</span>训练日记</div>
+            <div class="report-card">
+                <div class="report-diary-text">今天做了轻松的恢复跑和跑姿练习。虽然小腿有点紧，膝盖和跟腱也不太舒服，但我还是完成了训练。感觉需要多休息来恢复身体，避免过度劳累。</div>
+            </div>
+        </div>
+
+        <div class="report-section">
+            <div class="report-section-header"><span class="sec-icon">📋</span>教练简报</div>
+            <div class="report-briefing-text">运动员完成恢复训练，但报告多处疼痛。建议评估负荷，调整训练计划以优先恢复。</div>
+        </div>
+
+        <div class="report-section">
+            <div class="report-section-header"><span class="sec-icon">💡</span>明日训练建议</div>
+            <ol class="report-suggest-list">
+                <li>评估疼痛原因，调整力量训练技术，如深蹲姿势</li>
+                <li>减少跑步量，引入低冲击交叉训练维持体能</li>
+            </ol>
+        </div>
+
+        <div class="report-section">
+            <div class="report-section-header"><span class="sec-icon">✏️</span>添加备注</div>
+            <button class="voice-note-btn" id="reportVoiceBtn" onclick="toggleVoice('reportVoiceBtn','reportVoiceLabel')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="1" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/></svg>
+                <span id="reportVoiceLabel">语音输入备注</span>
+            </button>
+            <textarea class="report-textarea" placeholder="点击麦克风语音输入，或直接打字记录训练评价..."></textarea>
+            <button class="report-submit" onclick="alert('备注已提交')">提交备注</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function(){
+        const h = new Date().getHours();
+        let g = '你好';
+        if(h<6) g='夜深了，'; else if(h<11) g='早上好，'; else if(h<14) g='中午好，'; else if(h<18) g='下午好，'; else g='晚上好，';
+        document.getElementById('greetingText').textContent = g;
+    })();
+
+    const compactTitles = {
+        'page-home': '',
+        'page-records': '训练记录',
+        'page-notify': '通知'
+    };
+
+    function switchPage(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.page === pageId);
+        });
+
+        // Switch header mode
+        if (pageId === 'page-home') {
+            document.body.className = 'mode-home';
+        } else {
+            document.body.className = 'mode-page';
+            document.getElementById('compactTitle').textContent = compactTitles[pageId] || '';
+        }
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function openSheet(id) {
+        const sheet = document.getElementById(id);
+        const overlay = document.getElementById(id.replace('Sheet', 'Overlay'));
+        sheet.classList.add('open');
+        overlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeSheet(id) {
+        const sheet = document.getElementById(id);
+        const overlay = document.getElementById(id.replace('Sheet', 'Overlay'));
+        sheet.classList.remove('open');
+        overlay.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    function openAthleteDetail(athlete) {
+        openSheet('athleteSheet');
+    }
+
+    function openReportFromAthlete() {
+        closeSheet('athleteSheet');
+        setTimeout(() => openSheet('reportSheet'), 350);
+    }
+    function backToAthlete() {
+        closeSheet('reportSheet');
+        setTimeout(() => openSheet('athleteSheet'), 350);
+    }
+
+    function openReportDetail() {
+        openSheet('reportSheet');
+    }
+
+    function toggleVoice(btnId, labelId) {
+        const btn = document.getElementById(btnId);
+        const label = document.getElementById(labelId);
+        if (!btn.classList.contains('recording')) {
+            btn.classList.add('recording');
+            label.textContent = '正在录音… 点击结束';
+            setTimeout(() => {
+                btn.classList.remove('recording');
+                label.textContent = '识别完成，内容已填入';
+                setTimeout(() => { label.textContent = '语音输入备注'; }, 2000);
+            }, 3000);
+        }
+    }
+
+    function filterRecords(athlete, btn) {
+        document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.feed-card').forEach(card => {
+            if (athlete === 'all' || card.dataset.athlete === athlete) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    function markAllRead() {
+        document.querySelectorAll('.notif-card.unread').forEach(el => el.classList.remove('unread'));
+        document.getElementById('markAllBtn').style.display = 'none';
+        document.querySelectorAll('.nav-btn .badge').forEach(b => b.style.display = 'none');
+    }
+</script>
+
+</body>
+</html>

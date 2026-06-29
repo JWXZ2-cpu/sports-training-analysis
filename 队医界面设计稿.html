@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>运动医学管理</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0D0C0A;
+            --surface: #171613;
+            --card: #1F1E19;
+            --card-hover: #28261F;
+            --border: rgba(255,255,255,0.06);
+            --border-light: rgba(255,255,255,0.10);
+            --accent: #D4A44C;
+            --accent-glow: rgba(212,164,76,0.20);
+            --accent-dim: rgba(212,164,76,0.10);
+            --text: #F0EBE0;
+            --text-secondary: #8A8478;
+            --text-dim: #4A4640;
+            --green: #6BBF6E;
+            --green-dim: rgba(107,191,110,0.12);
+            --amber: #E8A849;
+            --amber-dim: rgba(232,168,73,0.12);
+            --red: #D45C5C;
+            --red-dim: rgba(212,92,92,0.12);
+            --blue: #5C9FD4;
+            --blue-dim: rgba(92,159,212,0.12);
+            --purple: #9B7FD4;
+            --purple-dim: rgba(155,127,212,0.12);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --gutter: 16px;
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg); color: var(--text);
+            -webkit-font-smoothing: antialiased; overflow-x: hidden;
+        }
+        .grain { position: fixed; inset: 0; pointer-events: none; z-index: 9999; opacity: 0.025; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-repeat: repeat; }
+        .app { max-width: 430px; margin: 0 auto; min-height: 100vh; position: relative; overflow: hidden; background: radial-gradient(ellipse at 25% 10%, rgba(42,36,22,0.35) 0%, transparent 50%), radial-gradient(ellipse at 75% 85%, rgba(30,24,18,0.25) 0%, transparent 50%), var(--bg); }
+
+        .page { display: none; padding: 16px var(--gutter) 110px; width: 100%; overflow-x: hidden; }
+        .page.active { display: block; animation: pageIn 0.35s ease forwards; }
+        @keyframes pageIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Header */
+        .header { display: flex; justify-content: space-between; align-items: flex-start; padding: 20px var(--gutter) 0; }
+        .greeting-small { font-size: 14px; font-weight: 400; color: var(--text-secondary); }
+        .greeting-name { font-size: 28px; font-weight: 700; color: var(--text); margin-top: 2px; letter-spacing: -0.01em; }
+        .greeting-sub { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+        .avatar-ring { width: 46px; height: 46px; border-radius: 50%; padding: 2.5px; background: linear-gradient(135deg, var(--accent) 0%, #E87040 100%); flex-shrink: 0; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.3s ease; }
+        .avatar-ring:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--accent-glow); }
+        .avatar { width: 100%; height: 100%; border-radius: 50%; background: var(--card); display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 600; color: var(--accent); }
+
+        /* Sheet */
+        .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .sheet-overlay.open { opacity: 1; pointer-events: auto; }
+        .sheet { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%) translateY(100%); max-width: 430px; width: 100%; background: var(--surface); border-radius: 20px 20px 0 0; z-index: 201; transition: transform 0.35s cubic-bezier(0.32,0.72,0,1); padding: 0 24px env(safe-area-inset-bottom, 20px); max-height: 85vh; overflow-y: auto; }
+        .sheet.open { transform: translateX(-50%) translateY(0); }
+        .sheet-handle-area { display: flex; justify-content: center; padding: 12px 0 8px; cursor: grab; }
+        .sheet-handle { width: 36px; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.12); }
+        .sheet-header { display: flex; flex-direction: column; align-items: center; padding: 8px 0 24px; }
+        .sheet-avatar-ring { width: 72px; height: 72px; border-radius: 50%; padding: 3px; background: linear-gradient(135deg, var(--accent) 0%, #E87040 100%); margin-bottom: 16px; }
+        .sheet-avatar { width: 100%; height: 100%; border-radius: 50%; background: var(--card); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; color: var(--accent); }
+        .sheet-name { font-size: 20px; font-weight: 700; color: var(--text); }
+        .sheet-role { margin-top: 6px; font-size: 12px; font-weight: 500; color: var(--accent); padding: 4px 14px; border-radius: 20px; background: var(--accent-dim); }
+        .sheet-info-group { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 24px; }
+        .sheet-info-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 16px; border-bottom: 1px solid var(--border); }
+        .sheet-info-row:last-child { border-bottom: none; }
+        .sheet-info-label { font-size: 13px; color: var(--text-dim); }
+        .sheet-info-value { font-size: 14px; color: var(--text); font-weight: 500; }
+        .sheet-logout { width: 100%; padding: 15px; border: 1px solid rgba(212,92,92,0.2); border-radius: var(--radius-sm); background: var(--red-dim); color: var(--red); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; margin-bottom: 8px; }
+        .sheet-logout:hover { background: rgba(212,92,92,0.18); }
+
+        /* Stat Row */
+        .stat-row { display: flex; gap: 10px; margin: 28px 0 24px; animation: fadeUp 0.5s ease 0.1s both; }
+        .stat-card { flex: 1; padding: 16px 12px; border-radius: var(--radius-sm); background: var(--card); border: 1px solid var(--border); text-align: center; }
+        .stat-value { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+        .stat-value.good { color: var(--green); }
+        .stat-value.amber { color: var(--amber); }
+        .stat-value.red { color: var(--red); }
+        .stat-value.accent { color: var(--accent); }
+        .stat-label { font-size: 11px; color: var(--text-dim); margin-top: 6px; font-weight: 500; }
+
+        /* Section */
+        .section-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 14px; letter-spacing: -0.01em; display: flex; justify-content: space-between; align-items: center; }
+
+        /* Alert */
+        .alert-section { margin-bottom: 28px; animation: fadeUp 0.5s ease 0.15s both; }
+        .alert-card { background: linear-gradient(135deg, rgba(60,24,20,0.5) 0%, rgba(30,26,22,0.4) 100%); border: 1px solid rgba(212,92,92,0.15); border-radius: var(--radius); padding: 18px; display: flex; gap: 14px; cursor: pointer; transition: border-color 0.2s; }
+        .alert-card:hover { border-color: rgba(212,92,92,0.25); }
+        .alert-icon { width: 42px; height: 42px; border-radius: 12px; background: var(--red-dim); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+        .alert-content { flex: 1; }
+        .alert-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+        .alert-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+        .alert-badge { display: inline-block; margin-top: 8px; font-size: 11px; padding: 3px 10px; border-radius: 20px; background: var(--red-dim); color: var(--red); font-weight: 500; }
+
+        /* Preview */
+        .preview-card { margin-bottom: 28px; animation: fadeUp 0.5s ease 0.2s both; }
+        .preview-box { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.2s; }
+        .preview-box:hover { border-color: var(--border-light); background: var(--card-hover); }
+        .preview-left { display: flex; align-items: center; gap: 12px; }
+        .preview-icon { width: 40px; height: 40px; border-radius: 12px; background: var(--blue-dim); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .preview-title { font-size: 14px; font-weight: 600; color: var(--text); }
+        .preview-sub { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+        .preview-arrow { color: var(--text-dim); font-size: 16px; }
+
+        /* Today Treatment */
+        .treat-section { margin-bottom: 28px; animation: fadeUp 0.5s ease 0.25s both; }
+        .treat-empty { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px 18px; text-align: center; }
+        .treat-empty-icon { font-size: 28px; margin-bottom: 10px; opacity: 0.4; }
+        .treat-empty-text { font-size: 13px; color: var(--text-dim); }
+        .add-treat-btn { width: 100%; padding: 15px; border: none; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--accent) 0%, #C08830 100%); color: var(--bg); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .add-treat-btn:hover { box-shadow: 0 0 30px var(--accent-glow); }
+
+        /* Athlete List */
+        .athlete-list { display: flex; flex-direction: column; gap: 10px; animation: fadeUp 0.5s ease 0.3s both; }
+        .athlete-card { display: flex; align-items: center; gap: 14px; padding: 16px 18px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; transition: all 0.2s ease; }
+        .athlete-card:hover { border-color: var(--border-light); background: var(--card-hover); }
+        .athlete-card.warn { border-left: 3px solid var(--amber); }
+        .athlete-avatar { width: 40px; height: 40px; border-radius: 12px; background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; color: var(--accent); flex-shrink: 0; }
+        .athlete-info { flex: 1; min-width: 0; }
+        .athlete-name { font-size: 15px; font-weight: 600; color: var(--text); }
+        .athlete-meta { font-size: 12px; color: var(--text-dim); margin-top: 3px; }
+        .athlete-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+        .athlete-fatigue { font-size: 12px; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
+        .athlete-fatigue.low { background: var(--green-dim); color: var(--green); }
+        .athlete-fatigue.mid { background: var(--amber-dim); color: var(--amber); }
+        .athlete-fatigue.high { background: var(--red-dim); color: var(--red); }
+
+        /* Detail Page */
+        .back-btn { background: none; border: none; color: var(--accent); font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; padding: 6px 0; display: flex; align-items: center; gap: 6px; margin-bottom: 16px; }
+        .back-btn svg { width: 16px; height: 16px; }
+        .detail-top { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+        .detail-avatar { width: 56px; height: 56px; border-radius: 16px; background: var(--card); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+        .detail-name { font-size: 20px; font-weight: 700; color: var(--text); }
+        .detail-fatigue-tag { display: inline-block; margin-top: 6px; font-size: 12px; padding: 3px 12px; border-radius: 20px; font-weight: 500; }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 4px; padding: 3px; background: var(--surface); border-radius: var(--radius-sm); border: 1px solid var(--border); margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 10px 12px; border: none; border-radius: 7px; background: transparent; color: var(--text-dim); font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .tab-btn.active { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(212,164,76,0.15); }
+        .tab-btn:hover:not(.active) { color: var(--text-secondary); }
+
+        /* Common form */
+        .form-input { width: 100%; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-family: inherit; font-size: 14px; transition: border-color 0.2s; outline: none; }
+        .form-input:focus { border-color: var(--accent); }
+        .form-input::placeholder { color: var(--text-dim); }
+        textarea.form-input { min-height: 80px; resize: vertical; line-height: 1.6; }
+        select.form-input { appearance: none; background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%238A8478' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+
+        /* Injury Form Card (inside detail page) */
+        .detail-form-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; animation: fadeUp 0.4s ease 0s both; }
+        .detail-field { margin-bottom: 18px; }
+        .detail-field:last-child { margin-bottom: 0; }
+        .detail-field-label { font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px; }
+
+        /* Voice btn */
+        .form-voice-btn { display: flex; align-items: center; gap: 8px; width: 100%; padding: 11px 16px; border: 1px dashed var(--border-light); border-radius: var(--radius-sm); background: none; color: var(--text-secondary); font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; justify-content: center; margin-bottom: 10px; }
+        .form-voice-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+        .form-voice-btn svg { width: 16px; height: 16px; }
+        .form-voice-btn.recording { border-color: var(--red); color: var(--red); background: var(--red-dim); border-style: solid; animation: recordPulse 1.5s ease infinite; }
+        @keyframes recordPulse { 0%,100% { box-shadow: 0 0 10px rgba(212,92,92,0.1); } 50% { box-shadow: 0 0 25px rgba(212,92,92,0.2); } }
+
+        /* Submit */
+        .submit-btn { width: 100%; padding: 15px; border: none; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--accent) 0%, #C08830 100%); color: var(--bg); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .submit-btn:hover { box-shadow: 0 0 30px var(--accent-glow); }
+        .submit-btn:active { transform: scale(0.98); }
+
+        /* Empty / action btn */
+        .empty-state { padding: 40px 20px; text-align: center; }
+        .empty-icon { font-size: 36px; margin-bottom: 12px; opacity: 0.3; }
+        .empty-text { font-size: 14px; color: var(--text-dim); margin-bottom: 6px; }
+        .empty-sub { font-size: 12px; color: var(--text-dim); opacity: 0.6; }
+        .empty-btn { margin-top: 16px; padding: 12px 24px; border: 1px dashed var(--border-light); border-radius: var(--radius-sm); background: none; color: var(--accent); font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .empty-btn:hover { border-color: var(--accent); background: var(--accent-dim); }
+
+        /* Training Data - Fatigue Trend */
+        .fatigue-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 16px; animation: fadeUp 0.4s ease 0.05s both; }
+        .fatigue-card-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 14px; }
+        .fatigue-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .fatigue-item:last-child { border-bottom: none; }
+        .fatigue-date { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+        .fatigue-tag { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+        .fatigue-tag.high { background: var(--red-dim); color: var(--red); }
+        .fatigue-tag.mid { background: var(--amber-dim); color: var(--amber); }
+        .fatigue-tag.low { background: var(--green-dim); color: var(--green); }
+
+        /* Training Data - Pain Stats */
+        .pain-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 16px; animation: fadeUp 0.4s ease 0.1s both; }
+        .pain-card-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 14px; }
+        .pain-item { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .pain-item:last-child { margin-bottom: 0; }
+        .pain-label { font-size: 13px; font-weight: 500; color: var(--text-secondary); width: 42px; flex-shrink: 0; text-align: right; }
+        .pain-bar-track { flex: 1; height: 20px; background: rgba(255,255,255,0.03); border-radius: 10px; overflow: hidden; }
+        .pain-bar-fill { height: 100%; border-radius: 10px; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.9); min-width: 44px; }
+        .pain-bar-fill.red { background: linear-gradient(90deg, rgba(212,92,92,0.4), var(--red)); }
+        .pain-bar-fill.amber { background: linear-gradient(90deg, rgba(232,168,73,0.4), var(--amber)); }
+        .pain-bar-fill.blue { background: linear-gradient(90deg, rgba(92,159,212,0.4), var(--blue)); }
+
+        /* Upload Card */
+        .upload-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; animation: fadeUp 0.4s ease 0.05s both; }
+        .upload-dropzone { border: 2px dashed var(--border-light); border-radius: var(--radius-sm); padding: 32px 20px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 16px; }
+        .upload-dropzone:hover { border-color: var(--accent); background: var(--accent-dim); }
+        .upload-dropzone-icon { font-size: 32px; margin-bottom: 8px; opacity: 0.4; }
+        .upload-dropzone-text { font-size: 13px; color: var(--text-dim); }
+        .upload-dropzone-hint { font-size: 11px; color: var(--text-dim); opacity: 0.6; margin-top: 4px; }
+
+        /* Treatment Record Card */
+        .treat-record-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px 18px; margin-bottom: 10px; animation: fadeUp 0.3s ease both; }
+        .treat-record-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .treat-record-type { font-size: 12px; font-weight: 600; color: var(--accent); }
+        .treat-record-date { font-size: 11px; color: var(--text-dim); }
+        .treat-record-body { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+
+        /* Conflict Sheet */
+        .conflict-refresh { background: none; border: 1px solid var(--border); color: var(--text-secondary); font-family: inherit; font-size: 12px; font-weight: 500; padding: 6px 14px; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .conflict-refresh:hover { border-color: var(--accent); color: var(--accent); }
+        .conflict-stat-row { display: flex; gap: 10px; margin-bottom: 24px; }
+        .conflict-stat { flex: 1; padding: 16px 10px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); text-align: center; }
+        .conflict-stat-num { font-size: 24px; font-weight: 700; line-height: 1; }
+        .conflict-stat-label { font-size: 11px; color: var(--text-dim); margin-top: 5px; font-weight: 500; }
+        .conflict-date { font-size: 12px; color: var(--text-dim); margin-bottom: 20px; padding: 10px 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); text-align: center; }
+        .conflict-athlete-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 12px; }
+        .conflict-athlete-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .conflict-athlete-avatar { width: 36px; height: 36px; border-radius: 10px; background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: var(--accent); flex-shrink: 0; }
+        .conflict-athlete-name { font-size: 15px; font-weight: 600; color: var(--text); }
+        .conflict-info { font-size: 13px; color: var(--text-secondary); line-height: 1.7; }
+        .conflict-info span { color: var(--text-dim); }
+        .conflict-analysis { margin-top: 10px; padding: 10px 14px; background: var(--green-dim); border-radius: var(--radius-sm); font-size: 12px; color: var(--green); font-weight: 500; }
+
+        /* Bottom Nav */
+        .nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); max-width: 430px; width: 100%; display: flex; justify-content: space-around; padding: 8px var(--gutter); padding-bottom: max(8px, env(safe-area-inset-bottom)); background: rgba(13,12,10,0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--border); z-index: 100; }
+        .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 0; border: none; background: none; cursor: pointer; color: var(--text-dim); font-family: inherit; font-size: 11px; font-weight: 500; transition: color 0.2s; position: relative; }
+        .nav-btn svg { width: 22px; height: 22px; stroke-width: 1.5; transition: transform 0.2s; }
+        .nav-btn.active { color: var(--accent); }
+        .nav-btn.active svg { transform: scale(1.08); }
+        .nav-btn .badge { position: absolute; top: 4px; right: 50%; transform: translateX(14px); min-width: 16px; height: 16px; padding: 0 5px; border-radius: 9px; background: var(--red); color: white; font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+        .hidden { display: none !important; }
+
+        @media (min-width: 431px) {
+            body { display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 20px 0; background: radial-gradient(ellipse at 30% 30%, rgba(30,26,18,0.5) 0%, transparent 60%), #080706; }
+            .app { border-radius: 24px; border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 0 0 1px rgba(0,0,0,0.3), 0 20px 80px rgba(0,0,0,0.5); overflow: hidden; min-height: min(900px, calc(100vh - 40px)); }
+            .nav { border-radius: 0 0 24px 24px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="grain"></div>
+<div class="app">
+
+    <div class="header" id="headerArea">
+        <div>
+            <div class="greeting-small" id="greetingText">晚上好，</div>
+            <div class="greeting-name">郝医生</div>
+            <div class="greeting-sub">队医</div>
+        </div>
+        <div class="avatar-ring" onclick="openSheet('profileSheet')" title="我的"><div class="avatar">郝</div></div>
+    </div>
+
+    <!-- ===== 首页 ===== -->
+    <section class="page active" id="page-home">
+        <div class="stat-row">
+            <div class="stat-card"><div class="stat-value red">1</div><div class="stat-label">伤病预警</div></div>
+            <div class="stat-card"><div class="stat-value good">0</div><div class="stat-label">今日治疗</div></div>
+            <div class="stat-card"><div class="stat-value red">1</div><div class="stat-label">高危</div></div>
+        </div>
+        <div class="alert-section">
+            <div class="section-title">预警运动员</div>
+            <div class="alert-card" onclick="switchPage('page-detail')">
+                <div class="alert-icon">⚠️</div>
+                <div class="alert-content"><div class="alert-title">王队员</div><div class="alert-desc">膝盖和跟腱疼痛，可能因负荷过高导致受伤风险</div><span class="alert-badge">伤病预警</span></div>
+            </div>
+        </div>
+        <div class="preview-card">
+            <div class="section-title">明日训练安排预览</div>
+            <div class="preview-box" onclick="openSheet('conflictSheet')">
+                <div class="preview-left"><div class="preview-icon">🔍</div><div><div class="preview-title">检查冲突</div><div class="preview-sub">明日暂无训练计划</div></div></div>
+                <span class="preview-arrow">›</span>
+            </div>
+        </div>
+        <div class="treat-section">
+            <div class="section-title">今日治疗记录</div>
+            <div class="treat-empty"><div class="treat-empty-icon">📋</div><div class="treat-empty-text">今日暂无治疗记录</div></div>
+            <button class="add-treat-btn" onclick="openSheet('treatSheet')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>录入治疗</button>
+        </div>
+        <div>
+            <div class="section-title">运动员列表</div>
+            <div class="athlete-list">
+                <div class="athlete-card warn" onclick="switchPage('page-detail')"><div class="athlete-avatar">王</div><div class="athlete-info"><div class="athlete-name">王队员</div><div class="athlete-meta">最近治疗: 2026-06-15</div></div><div class="athlete-right"><span class="athlete-fatigue mid">疲劳: 中</span></div></div>
+                <div class="athlete-card" onclick="switchPage('page-detail')"><div class="athlete-avatar">陈</div><div class="athlete-info"><div class="athlete-name">陈队员</div><div class="athlete-meta">暂无治疗</div></div><div class="athlete-right"><span class="athlete-fatigue low">疲劳: 低</span></div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== 伤病详情（完整版） ===== -->
+    <section class="page" id="page-detail">
+        <button class="back-btn" onclick="switchPage('page-home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>返回</button>
+        <div class="detail-top">
+            <div class="detail-avatar">王</div>
+            <div><div class="detail-name">王队员</div><span class="detail-fatigue-tag" style="background:var(--amber-dim);color:var(--amber);">当前疲劳度：中</span></div>
+        </div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchDetailTab(this,'injury')">伤病记录</button>
+            <button class="tab-btn" onclick="switchDetailTab(this,'treat')">治疗记录</button>
+            <button class="tab-btn" onclick="switchDetailTab(this,'train')">训练数据</button>
+        </div>
+
+        <!-- Tab: 伤病记录 -->
+        <div class="detail-tab-content" id="tab-injury">
+            <div style="display:flex;justify-content:flex-end;margin-bottom:14px;">
+                <button class="empty-btn" onclick="openSheet('injurySheet')">+ 录入伤病</button>
+            </div>
+            <div class="empty-state"><div class="empty-icon">🩹</div><div class="empty-text">暂无伤病记录</div><div class="empty-sub">点击上方按钮录入伤病信息</div></div>
+            <button class="empty-btn" style="width:100%;margin-top:12px;" onclick="openSheet('uploadSheet')">上传医院检查结果</button>
+        </div>
+
+        <!-- Tab: 治疗记录 -->
+        <div class="detail-tab-content hidden" id="tab-treat">
+            <div class="treat-record-card">
+                <div class="treat-record-header"><span class="treat-record-type">超声波治疗</span><span class="treat-record-date">2026-06-15</span></div>
+                <div class="treat-record-body">左膝前侧 · 恢复期48h · 48h内避免高强度负荷</div>
+            </div>
+        </div>
+
+        <!-- Tab: 训练数据 -->
+        <div class="detail-tab-content hidden" id="tab-train">
+            <div class="fatigue-card">
+                <div class="fatigue-card-title">疲劳度趋势（最近 6 次）</div>
+                <div class="fatigue-item"><span class="fatigue-date">06-14</span><span class="fatigue-tag mid">中</span></div>
+                <div class="fatigue-item"><span class="fatigue-date">06-10</span><span class="fatigue-tag high">高</span></div>
+                <div class="fatigue-item"><span class="fatigue-date">06-10</span><span class="fatigue-tag high">高</span></div>
+                <div class="fatigue-item"><span class="fatigue-date">06-10</span><span class="fatigue-tag high">高</span></div>
+                <div class="fatigue-item"><span class="fatigue-date">06-10</span><span class="fatigue-tag high">高</span></div>
+                <div class="fatigue-item"><span class="fatigue-date">06-10</span><span class="fatigue-tag high">高</span></div>
+            </div>
+            <div class="pain-card">
+                <div class="pain-card-title">疼痛部位统计</div>
+                <div class="pain-item"><span class="pain-label">小腿</span><div class="pain-bar-track"><div class="pain-bar-fill red" style="width:100%">4次</div></div></div>
+                <div class="pain-item"><span class="pain-label">膝盖</span><div class="pain-bar-track"><div class="pain-bar-fill amber" style="width:100%">4次</div></div></div>
+                <div class="pain-item"><span class="pain-label">跟腱</span><div class="pain-bar-track"><div class="pain-bar-fill amber" style="width:100%">4次</div></div></div>
+                <div class="pain-item"><span class="pain-label">全身</span><div class="pain-bar-track"><div class="pain-bar-fill blue" style="width:25%">1次</div></div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== 治疗记录 ===== -->
+    <section class="page" id="page-treat">
+        <h1 style="font-size:24px;font-weight:700;color:var(--text);margin-bottom:24px;letter-spacing:-0.02em;">治疗记录</h1>
+        <div class="detail-form-card">
+            <div class="detail-field"><div class="detail-field-label">运动员</div><select class="form-input"><option>– 选择运动员 –</option><option>王队员</option><option>陈队员</option></select></div>
+            <div class="detail-field"><div class="detail-field-label">治疗时间</div><input type="datetime-local" class="form-input" value="2026-06-17T01:09"></div>
+            <div class="detail-field"><div class="detail-field-label">治疗部位</div><input type="text" class="form-input" placeholder="如：左膝前侧"></div>
+            <div class="detail-field"><div class="detail-field-label">治疗方式</div><select class="form-input"><option>超声波治疗</option><option>针灸</option><option>按摩推拿</option><option>冰敷/热敷</option><option>电疗</option><option>其他</option></select></div>
+            <div class="detail-field"><div class="detail-field-label">使用设备</div><input type="text" class="form-input" placeholder="如：超声治疗仪"></div>
+            <div class="detail-field"><div class="detail-field-label">恢复期（小时）</div><input type="number" class="form-input" value="48"></div>
+            <div class="detail-field"><div class="detail-field-label">注意事项</div><button class="form-voice-btn" id="voiceBtn" onclick="toggleVoice()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="1" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/></svg><span id="voiceLabel">语音输入</span></button><textarea class="form-input" placeholder="如：48h内避免高强度负荷"></textarea></div>
+        </div>
+        <button class="submit-btn">保存治疗记录</button>
+        <div style="font-size:15px;font-weight:600;color:var(--text);margin:28px 0 14px;display:flex;align-items:center;gap:8px;">最近记录 <span style="font-size:11px;padding:2px 8px;border-radius:10px;background:var(--accent-dim);color:var(--accent);font-weight:600;">1 条</span></div>
+        <div class="treat-record-card"><div class="treat-record-header"><span class="treat-record-type">超声波治疗</span><span class="treat-record-date">2026-06-15</span></div><div class="treat-record-body">左膝前侧 · 恢复期48h · 48h内避免高强度负荷</div></div>
+    </section>
+
+    <!-- ===== 伤病管理 ===== -->
+    <section class="page" id="page-injury">
+        <h1 style="font-size:24px;font-weight:700;color:var(--text);margin-bottom:24px;letter-spacing:-0.02em;">伤病管理</h1>
+        <div class="alert-section" style="margin-bottom:24px;">
+            <div class="section-title">伤病预警 <span style="font-size:12px;padding:2px 8px;border-radius:10px;background:var(--red-dim);color:var(--red);font-weight:600;">1</span></div>
+            <div class="alert-card" onclick="switchPage('page-detail')"><div class="alert-icon">⚠️</div><div class="alert-content"><div class="alert-title">王队员</div><div class="alert-desc">膝盖和跟腱疼痛，可能因负荷过高导致受伤风险</div></div></div>
+        </div>
+        <div class="section-title">全部运动员</div>
+        <div class="athlete-list">
+            <div class="athlete-card" onclick="switchPage('page-detail')"><div class="athlete-avatar">王</div><div class="athlete-info"><div class="athlete-name">王队员</div><div class="athlete-meta">膝盖、跟腱 · 疲劳: 中</div></div><div class="athlete-right"><span class="athlete-fatigue mid">关注</span></div></div>
+            <div class="athlete-card" onclick="switchPage('page-detail')"><div class="athlete-avatar">陈</div><div class="athlete-info"><div class="athlete-name">陈队员</div><div class="athlete-meta">无伤病 · 疲劳: 低</div></div><div class="athlete-right"><span class="athlete-fatigue low">正常</span></div></div>
+        </div>
+    </section>
+
+    <!-- Bottom Nav -->
+    <nav class="nav">
+        <button class="nav-btn active" data-page="page-home" onclick="switchPage('page-home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>首页</span></button>
+        <button class="nav-btn" data-page="page-treat" onclick="switchPage('page-treat')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span>治疗记录</span></button>
+        <button class="nav-btn" data-page="page-injury" onclick="switchPage('page-injury')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>伤病管理</span><span class="badge">1</span></button>
+    </nav>
+
+    <!-- Profile Sheet -->
+    <div class="sheet-overlay" id="profileOverlay" onclick="closeSheet('profileSheet')"></div>
+    <div class="sheet" id="profileSheet">
+        <div class="sheet-handle-area" onclick="closeSheet('profileSheet')"><div class="sheet-handle"></div></div>
+        <div class="sheet-header"><div class="sheet-avatar-ring"><div class="sheet-avatar">郝</div></div><div class="sheet-name">郝医生</div><span class="sheet-role">队医</span></div>
+        <div class="sheet-info-group">
+            <div class="sheet-info-row"><span class="sheet-info-label">账号名</span><span class="sheet-info-value">郝医生</span></div>
+            <div class="sheet-info-row"><span class="sheet-info-label">角色</span><span class="sheet-info-value">队医</span></div>
+            <div class="sheet-info-row"><span class="sheet-info-label">用户 ID</span><span class="sheet-info-value">4</span></div>
+        </div>
+        <button class="sheet-logout" onclick="closeSheet('profileSheet');setTimeout(()=>alert('已退出登录'),300)">退出登录</button>
+    </div>
+
+    <!-- Conflict Sheet -->
+    <div class="sheet-overlay" id="conflictOverlay" onclick="closeSheet('conflictSheet')"></div>
+    <div class="sheet" id="conflictSheet">
+        <div class="sheet-handle-area" onclick="closeSheet('conflictSheet')"><div class="sheet-handle"></div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;"><h2 style="font-size:20px;font-weight:700;color:var(--text);">治疗-训练冲突检查</h2><button class="conflict-refresh" onclick="alert('已刷新')">刷新</button></div>
+        <div class="conflict-stat-row"><div class="conflict-stat"><div class="conflict-stat-num" style="color:var(--blue)">0</div><div class="conflict-stat-label">今日治疗</div></div><div class="conflict-stat"><div class="conflict-stat-num" style="color:var(--accent)">0</div><div class="conflict-stat-label">明日计划</div></div><div class="conflict-stat"><div class="conflict-stat-num" style="color:var(--green)">0</div><div class="conflict-stat-label">冲突</div></div></div>
+        <div class="conflict-date">检查日期: 2026-06-17 → 明日: 2026-06-18</div>
+        <div class="conflict-athlete-card"><div class="conflict-athlete-header"><div class="conflict-athlete-avatar">王</div><div class="conflict-athlete-name">王队员</div></div><div class="conflict-info"><span>今日治疗:</span> 无今日治疗<br><span>明日计划:</span> 无明日计划</div><div class="conflict-analysis">✓ 分析: 今日无治疗安排</div></div>
+        <div class="conflict-athlete-card"><div class="conflict-athlete-header"><div class="conflict-athlete-avatar">陈</div><div class="conflict-athlete-name">陈队员</div></div><div class="conflict-info"><span>今日治疗:</span> 无今日治疗<br><span>明日计划:</span> 无明日计划</div><div class="conflict-analysis">✓ 分析: 今日无治疗安排</div></div>
+    </div>
+
+    <!-- Quick Treat Sheet -->
+    <div class="sheet-overlay" id="treatOverlay" onclick="closeSheet('treatSheet')"></div>
+    <div class="sheet" id="treatSheet">
+        <div class="sheet-handle-area" onclick="closeSheet('treatSheet')"><div class="sheet-handle"></div></div>
+        <h2 style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:20px;">录入治疗记录</h2>
+        <div style="margin-bottom:16px;"><div style="font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">运动员</div><select class="form-input"><option>– 选择运动员 –</option><option>王队员</option><option>陈队员</option></select></div>
+        <div style="margin-bottom:16px;"><div style="font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">治疗时间</div><input type="datetime-local" class="form-input" value="2026-06-17T01:09"></div>
+        <div style="margin-bottom:16px;"><div style="font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">治疗部位</div><input type="text" class="form-input" placeholder="如：左膝前侧"></div>
+        <div style="margin-bottom:16px;"><div style="font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">治疗方式</div><select class="form-input"><option>超声波治疗</option><option>针灸</option><option>按摩推拿</option><option>冰敷/热敷</option><option>电疗</option><option>其他</option></select></div>
+        <div style="margin-bottom:16px;"><div style="font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">使用设备</div><input type="text" class="form-input" placeholder="如：超声治疗仪"></div>
+        <div style="margin-bottom:16px;"><div style="font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">恢复期（小时）</div><input type="number" class="form-input" value="48"></div>
+        <div style="margin-bottom:16px;"><div style="font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">注意事项</div><textarea class="form-input" placeholder="如：48h内避免高强度负荷"></textarea></div>
+        <button class="submit-btn" onclick="closeSheet('treatSheet');setTimeout(()=>alert('治疗记录已保存'),300)">保存治疗记录</button>
+    </div>
+
+    <!-- ===== NEW: Injury Record Sheet ===== -->
+    <div class="sheet-overlay" id="injuryOverlay" onclick="closeSheet('injurySheet')"></div>
+    <div class="sheet" id="injurySheet">
+        <div class="sheet-handle-area" onclick="closeSheet('injurySheet')"><div class="sheet-handle"></div></div>
+        <h2 style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:6px;">录入伤病记录</h2>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:24px;">王队员 — 健康档案</p>
+        <div style="margin-bottom:16px;"><div style="font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">受伤日期</div><input type="date" class="form-input" value="2026-06-17"></div>
+        <div style="margin-bottom:16px;"><div style="font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">受伤部位</div><input type="text" class="form-input" placeholder="如：右膝"></div>
+        <div style="margin-bottom:16px;"><div style="font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">伤病类型</div><select class="form-input"><option>如：慢性劳损</option><option>急性损伤</option><option>慢性劳损</option><option>术后恢复</option><option>其他</option></select></div>
+        <div style="margin-bottom:16px;"><div style="font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">严重程度</div><select class="form-input"><option>中度</option><option>轻度</option><option>中度</option><option>重度</option></select></div>
+        <div style="margin-bottom:16px;"><div style="font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">诊断</div><input type="text" class="form-input" placeholder="如：髌骨软化症早期"></div>
+        <div style="margin-bottom:16px;"><div style="font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">原因分析</div><input type="text" class="form-input" placeholder="如：近两周跑量增加过快"></div>
+        <div style="margin-bottom:16px;"><div style="font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">治疗方案</div><input type="text" class="form-input" placeholder="如：超声治疗+休息"></div>
+        <div style="margin-bottom:16px;"><div style="font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">预估恢复时间</div><input type="text" class="form-input" placeholder="如：2周"></div>
+        <div style="margin-bottom:16px;">
+            <div style="font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">备注</div>
+            <button class="form-voice-btn" id="injuryVoiceBtn" onclick="toggleInjuryVoice()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="1" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/></svg><span id="injuryVoiceLabel">语音输入</span></button>
+            <textarea class="form-input" placeholder="其他备注信息..."></textarea>
+        </div>
+        <button class="submit-btn" onclick="closeSheet('injurySheet');setTimeout(()=>alert('伤病记录已保存'),300)">保存伤病记录</button>
+    </div>
+
+    <!-- ===== NEW: Upload Check Results Sheet ===== -->
+    <div class="sheet-overlay" id="uploadOverlay" onclick="closeSheet('uploadSheet')"></div>
+    <div class="sheet" id="uploadSheet">
+        <div class="sheet-handle-area" onclick="closeSheet('uploadSheet')"><div class="sheet-handle"></div></div>
+        <h2 style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:20px;">上传医院检查结果</h2>
+        <div style="margin-bottom:16px;"><div style="font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">检查日期</div><input type="date" class="form-input" value="2026-06-17"></div>
+        <div style="margin-bottom:16px;"><div style="font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">检查类型</div><select class="form-input"><option>MRI 核磁共振</option><option>X 光</option><option>CT</option><option>超声检查</option><option>血液检查</option><option>其他</option></select></div>
+        <div style="margin-bottom:16px;"><div style="font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">备注</div><textarea class="form-input" placeholder="检查说明或医嘱..."></textarea></div>
+        <div style="margin-bottom:16px;">
+            <div style="font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">选择文件</div>
+            <div class="upload-dropzone" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-dropzone-icon">📁</div>
+                <div class="upload-dropzone-text">点击选择文件</div>
+                <div class="upload-dropzone-hint" id="fileHint">未选择任何文件</div>
+                <input type="file" id="fileInput" style="display:none" onchange="document.getElementById('fileHint').textContent=this.files[0]?this.files[0].name:'未选择任何文件'">
+            </div>
+        </div>
+        <button class="submit-btn" onclick="closeSheet('uploadSheet');setTimeout(()=>alert('检查结果已上传'),300)">上传检查结果</button>
+    </div>
+
+</div>
+
+<script>
+    (function(){const h=new Date().getHours();let g='你好';if(h<6)g='夜深了，';else if(h<11)g='早上好，';else if(h<14)g='中午好，';else if(h<18)g='下午好，';else g='晚上好，';document.getElementById('greetingText').textContent=g;})();
+
+    function switchPage(pageId){
+        document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+        document.querySelectorAll('.nav-btn').forEach(btn=>{btn.classList.toggle('active',btn.dataset.page===pageId);});
+        document.getElementById('headerArea').style.display=(pageId==='page-home')?'flex':'none';
+        window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    function openSheet(id){
+        document.getElementById(id).classList.add('open');
+        document.getElementById(id.replace('Sheet','Overlay')).classList.add('open');
+        document.body.style.overflow='hidden';
+    }
+    function closeSheet(id){
+        document.getElementById(id).classList.remove('open');
+        document.getElementById(id.replace('Sheet','Overlay')).classList.remove('open');
+        document.body.style.overflow='';
+    }
+
+    function switchDetailTab(btn,tabId){
+        document.querySelectorAll('#page-detail .tab-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.detail-tab-content').forEach(c=>c.classList.add('hidden'));
+        document.getElementById('tab-'+tabId).classList.remove('hidden');
+    }
+
+    let voiceRecording=false;
+    function toggleVoice(){
+        const btn=document.getElementById('voiceBtn');const label=document.getElementById('voiceLabel');
+        if(!voiceRecording){voiceRecording=true;btn.classList.add('recording');label.textContent='正在录音…';setTimeout(()=>{voiceRecording=false;btn.classList.remove('recording');label.textContent='语音输入完成';setTimeout(()=>{label.textContent='语音输入';},2000);},3000);}
+    }
+
+    let injuryVoiceRecording=false;
+    function toggleInjuryVoice(){
+        const btn=document.getElementById('injuryVoiceBtn');const label=document.getElementById('injuryVoiceLabel');
+        if(!injuryVoiceRecording){injuryVoiceRecording=true;btn.classList.add('recording');label.textContent='正在录音…';setTimeout(()=>{injuryVoiceRecording=false;btn.classList.remove('recording');label.textContent='语音输入完成';setTimeout(()=>{label.textContent='语音输入';},2000);},3000);}
+    }
+</script>
+
+</body>
+</html>

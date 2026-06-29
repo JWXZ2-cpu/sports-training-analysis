@@ -8,8 +8,8 @@ export default function MicButton({ listening, onClick }) {
         borderRadius: "50%",
         border: "none",
         background: listening
-          ? "linear-gradient(135deg, #E24B4A 0%, #F09595 100%)"
-          : "linear-gradient(135deg, #534AB7 0%, #7F77DD 100%)",
+          ? "linear-gradient(135deg, var(--red) 0%, var(--red) 100%)"
+          : "linear-gradient(135deg, var(--accent) 0%, var(--accent) 100%)",
         cursor: "pointer",
         display: "flex",
         alignItems: "center",

@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>训练日志</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0D0C0A;
+            --surface: #171613;
+            --card: #1F1E19;
+            --card-hover: #28261F;
+            --border: rgba(255,255,255,0.06);
+            --border-light: rgba(255,255,255,0.10);
+            --accent: #D4A44C;
+            --accent-glow: rgba(212,164,76,0.20);
+            --accent-dim: rgba(212,164,76,0.10);
+            --text: #F0EBE0;
+            --text-secondary: #8A8478;
+            --text-dim: #4A4640;
+            --green: #6BBF6E;
+            --green-dim: rgba(107,191,110,0.12);
+            --amber: #E8A849;
+            --amber-dim: rgba(232,168,73,0.12);
+            --red: #D45C5C;
+            --red-dim: rgba(212,92,92,0.12);
+            --blue: #5C9FD4;
+            --blue-dim: rgba(92,159,212,0.12);
+            --purple: #9B7FD4;
+            --radius: 16px;
+            --radius-sm: 10px;
+            --gutter: 16px;
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        .grain {
+            position: fixed; inset: 0; pointer-events: none; z-index: 9999; opacity: 0.025;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            background-repeat: repeat;
+        }
+
+        .app {
+            max-width: 430px; margin: 0 auto; min-height: 100vh; position: relative;
+            overflow: hidden;
+            background:
+                radial-gradient(ellipse at 25% 10%, rgba(42,36,22,0.35) 0%, transparent 50%),
+                radial-gradient(ellipse at 75% 85%, rgba(30,24,18,0.25) 0%, transparent 50%),
+                var(--bg);
+        }
+
+        .page {
+            display: none;
+            padding: 16px var(--gutter) 110px;
+            width: 100%;
+            overflow-x: hidden;
+        }
+        .page.active { display: block; animation: pageIn 0.35s ease forwards; }
+        @keyframes pageIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            padding: 20px var(--gutter) 0;
+        }
+        .greeting-small { font-size: 14px; font-weight: 400; color: var(--text-secondary); letter-spacing: 0.02em; }
+        .greeting-name { font-size: 28px; font-weight: 700; color: var(--text); margin-top: 2px; letter-spacing: -0.01em; }
+        .greeting-date { font-size: 13px; color: var(--text-dim); margin-top: 6px; }
+        .avatar-ring {
+            width: 46px; height: 46px; border-radius: 50%; padding: 2.5px;
+            background: linear-gradient(135deg, var(--accent) 0%, #E87040 100%);
+            flex-shrink: 0; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.3s ease;
+        }
+        .avatar-ring:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--accent-glow); }
+        .avatar-ring:active { transform: scale(0.96); }
+        .avatar {
+            width: 100%; height: 100%; border-radius: 50%; background: var(--card);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 17px; font-weight: 600; color: var(--accent);
+        }
+
+        /* Profile Sheet */
+        .sheet-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+            z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .sheet-overlay.open { opacity: 1; pointer-events: auto; }
+        .sheet {
+            position: fixed; bottom: 0; left: 50%; transform: translateX(-50%) translateY(100%);
+            max-width: 430px; width: 100%; background: var(--surface);
+            border-radius: 20px 20px 0 0; z-index: 201;
+            transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+            padding: 0 24px env(safe-area-inset-bottom, 20px);
+            max-height: 85vh; overflow-y: auto;
+        }
+        .sheet.open { transform: translateX(-50%) translateY(0); }
+        .sheet-handle-area { display: flex; justify-content: center; padding: 12px 0 8px; cursor: grab; }
+        .sheet-handle { width: 36px; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.12); }
+        .sheet-header { display: flex; flex-direction: column; align-items: center; padding: 8px 0 24px; }
+        .sheet-avatar-ring {
+            width: 72px; height: 72px; border-radius: 50%; padding: 3px;
+            background: linear-gradient(135deg, var(--accent) 0%, #E87040 100%); margin-bottom: 16px;
+        }
+        .sheet-avatar {
+            width: 100%; height: 100%; border-radius: 50%; background: var(--card);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px; font-weight: 700; color: var(--accent);
+        }
+        .sheet-name { font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+        .sheet-role {
+            margin-top: 6px; font-size: 12px; font-weight: 500; color: var(--accent);
+            padding: 4px 14px; border-radius: 20px; background: var(--accent-dim); letter-spacing: 0.03em;
+        }
+        .sheet-info-group {
+            display: flex; flex-direction: column; gap: 0;
+            border: 1px solid var(--border); border-radius: var(--radius-sm);
+            overflow: hidden; margin-bottom: 24px;
+        }
+        .sheet-info-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 16px; border-bottom: 1px solid var(--border);
+        }
+        .sheet-info-row:last-child { border-bottom: none; }
+        .sheet-info-label { font-size: 13px; color: var(--text-dim); font-weight: 400; }
+        .sheet-info-value { font-size: 14px; color: var(--text); font-weight: 500; }
+        .sheet-logout {
+            width: 100%; padding: 15px; border: 1px solid rgba(212,92,92,0.2);
+            border-radius: var(--radius-sm); background: var(--red-dim);
+            color: var(--red); font-family: inherit; font-size: 14px;
+            font-weight: 600; cursor: pointer; transition: all 0.2s ease;
+            letter-spacing: 0.01em; margin-bottom: 8px;
+        }
+        .sheet-logout:hover { background: rgba(212,92,92,0.18); border-color: rgba(212,92,92,0.3); }
+        .sheet-logout:active { transform: scale(0.98); }
+
+        /* Status Card */
+        .status-card {
+            margin-top: 28px; padding: 20px; border-radius: var(--radius);
+            display: flex; align-items: center; gap: 16px;
+            animation: fadeUp 0.5s ease 0.1s both;
+        }
+        .status-card.rest {
+            background: linear-gradient(135deg, rgba(30,38,52,0.6) 0%, rgba(30,26,22,0.4) 100%);
+            border: 1px solid rgba(92,159,212,0.08);
+        }
+        .status-icon { font-size: 28px; flex-shrink: 0; }
+        .status-title { font-size: 16px; font-weight: 600; color: var(--text); }
+        .status-desc { font-size: 13px; color: var(--text-secondary); margin-top: 4px; line-height: 1.5; }
+
+        /* Week Strip */
+        .week-strip { margin-top: 24px; display: flex; gap: 4px; animation: fadeUp 0.5s ease 0.15s both; }
+        .week-day {
+            flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px;
+            padding: 12px 0; border-radius: var(--radius-sm); background: var(--surface);
+            border: 1px solid var(--border); transition: all 0.2s ease;
+        }
+        .week-day.today { border-color: var(--accent); background: var(--accent-dim); }
+        .week-day .day-label { font-size: 11px; font-weight: 500; color: var(--text-dim); }
+        .week-day.today .day-label { color: var(--accent); }
+        .week-day .day-date { font-size: 15px; font-weight: 600; color: var(--text-secondary); }
+        .week-day.today .day-date { color: var(--accent); }
+        .week-day .day-dot { width: 6px; height: 6px; border-radius: 50%; }
+        .week-day .day-dot.rest { background: var(--text-dim); }
+        .week-day .day-dot.train { background: var(--green); }
+        .week-day .day-dot.heavy { background: var(--amber); }
+        .week-day.today .day-dot { width: 7px; height: 7px; }
+
+        /* Voice Section */
+        .voice-section {
+            display: flex; flex-direction: column; align-items: center;
+            margin-top: 44px; animation: fadeUp 0.5s ease 0.2s both;
+        }
+        .voice-btn {
+            position: relative; width: 88px; height: 88px; border-radius: 50%;
+            border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, var(--accent) 0%, #C08830 100%);
+            color: var(--bg); transition: transform 0.2s ease, box-shadow 0.3s ease; z-index: 2;
+        }
+        .voice-btn:hover { transform: scale(1.05); box-shadow: 0 0 40px var(--accent-glow); }
+        .voice-btn:active { transform: scale(0.97); }
+        .voice-btn.recording {
+            background: linear-gradient(135deg, var(--red) 0%, #B84040 100%);
+            box-shadow: 0 0 50px rgba(212,92,92,0.3); animation: recordPulse 1.5s ease infinite;
+        }
+        @keyframes recordPulse {
+            0%, 100% { box-shadow: 0 0 30px rgba(212,92,92,0.25); }
+            50% { box-shadow: 0 0 60px rgba(212,92,92,0.4); }
+        }
+        .voice-btn svg { width: 32px; height: 32px; position: relative; z-index: 2; }
+        .ring { position: absolute; border-radius: 50%; border: 1.5px solid var(--accent); pointer-events: none; }
+        .ring-1 { width: 108px; height: 108px; opacity: 0.25; animation: ringPulse 2.5s ease-out infinite; }
+        .ring-2 { width: 132px; height: 132px; opacity: 0.15; animation: ringPulse 2.5s ease-out 0.4s infinite; }
+        .ring-3 { width: 156px; height: 156px; opacity: 0.08; animation: ringPulse 2.5s ease-out 0.8s infinite; }
+        @keyframes ringPulse { 0% { transform: scale(0.85); opacity: 0.3; } 100% { transform: scale(1.15); opacity: 0; } }
+        .voice-btn.recording .ring { border-color: var(--red); }
+        .voice-label { margin-top: 24px; font-size: 14px; color: var(--text-secondary); transition: color 0.3s; }
+        .voice-label.active { color: var(--red); }
+        .waveform { display: flex; align-items: center; justify-content: center; gap: 3px; height: 40px; margin-top: 20px; }
+        .waveform.hidden { display: none; }
+        .wave-bar { width: 3px; border-radius: 2px; background: var(--red); opacity: 0.7; animation: waveAnim 0.8s ease-in-out infinite alternate; }
+        .wave-bar:nth-child(1){animation-delay:0s;height:12px}.wave-bar:nth-child(2){animation-delay:.1s;height:20px}.wave-bar:nth-child(3){animation-delay:.15s;height:28px}.wave-bar:nth-child(4){animation-delay:.2s;height:16px}.wave-bar:nth-child(5){animation-delay:.05s;height:32px}.wave-bar:nth-child(6){animation-delay:.25s;height:22px}.wave-bar:nth-child(7){animation-delay:.12s;height:18px}.wave-bar:nth-child(8){animation-delay:.18s;height:26px}.wave-bar:nth-child(9){animation-delay:.08s;height:14px}.wave-bar:nth-child(10){animation-delay:.22s;height:24px}.wave-bar:nth-child(11){animation-delay:.06s;height:20px}.wave-bar:nth-child(12){animation-delay:.16s;height:30px}.wave-bar:nth-child(13){animation-delay:.1s;height:16px}
+        @keyframes waveAnim { from { transform: scaleY(0.4); } to { transform: scaleY(1); } }
+        .recording-timer { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--red); margin-top: 12px; letter-spacing: 0.05em; }
+        .recording-timer.hidden { display: none; }
+        .import-link {
+            margin-top: 20px; font-size: 12px; color: var(--text-dim);
+            display: inline-flex; align-items: center; gap: 4px;
+            transition: color 0.2s; cursor: pointer; border: none; background: none; font-family: inherit;
+        }
+        .import-link:hover { color: var(--text-secondary); }
+        .import-link svg { width: 14px; height: 14px; }
+
+        /* Recent Section */
+        .section-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 14px; letter-spacing: -0.01em; }
+        .recent-section { margin-top: 44px; animation: fadeUp 0.5s ease 0.3s both; }
+        .recent-card {
+            background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+            padding: 18px; transition: border-color 0.2s, background 0.2s; cursor: pointer;
+        }
+        .recent-card:hover { border-color: var(--border-light); background: var(--card-hover); }
+        .recent-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .recent-date { font-size: 12px; color: var(--text-dim); }
+        .recent-mood { font-size: 20px; }
+        .recent-text { font-family: 'Noto Serif SC', serif; font-size: 14.5px; line-height: 1.7; color: var(--text-secondary); }
+        .recent-tag { display: inline-block; margin-top: 12px; font-size: 11px; padding: 3px 10px; border-radius: 20px; background: var(--blue-dim); color: var(--blue); }
+
+        /* Diary Page */
+        .page-title { font-size: 24px; font-weight: 700; color: var(--text); margin-bottom: 24px; letter-spacing: -0.02em; }
+        .timeline { position: relative; padding-left: 32px; }
+        .timeline::before {
+            content: ''; position: absolute; left: 7px; top: 8px; bottom: 8px; width: 2px;
+            background: linear-gradient(to bottom, var(--accent) 0%, var(--text-dim) 30%, var(--text-dim) 100%); border-radius: 1px;
+        }
+        .entry { position: relative; margin-bottom: 28px; animation: fadeUp 0.4s ease both; }
+        .entry:nth-child(1){animation-delay:.05s}.entry:nth-child(2){animation-delay:.1s}.entry:nth-child(3){animation-delay:.15s}.entry:nth-child(4){animation-delay:.2s}.entry:nth-child(5){animation-delay:.25s}
+        .entry-dot {
+            position: absolute; left: -32px; top: 8px; width: 12px; height: 12px;
+            border-radius: 50%; border: 2.5px solid var(--bg); z-index: 1;
+        }
+        .entry-dot.good { background: var(--green); box-shadow: 0 0 8px rgba(107,191,110,0.3); }
+        .entry-dot.ok { background: var(--amber); box-shadow: 0 0 8px rgba(232,168,73,0.3); }
+        .entry-dot.tired { background: var(--red); box-shadow: 0 0 8px rgba(212,92,92,0.3); }
+        .entry-dot.rest { background: var(--text-dim); }
+        .entry-dot.great { background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
+        .entry-card {
+            background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+            padding: 18px; transition: border-color 0.2s, background 0.2s;
+        }
+        .entry-card:hover { border-color: var(--border-light); background: var(--card-hover); }
+        .entry-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .entry-date { font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+        .entry-mood { font-size: 18px; }
+        .entry-text { font-family: 'Noto Serif SC', serif; font-size: 14px; line-height: 1.75; color: var(--text-secondary); }
+        .entry-meta { margin-top: 12px; display: flex; gap: 8px; }
+        .entry-badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
+        .entry-badge.viewed { background: var(--blue-dim); color: var(--blue); }
+        .entry-badge.alert { background: var(--red-dim); color: var(--red); }
+
+        /* ========================================================
+           重新设计的 数据总结 页面
+           ======================================================== */
+
+        .data-page-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 28px;
+        }
+        .data-page-title {
+            font-size: 24px; font-weight: 700; color: var(--text); letter-spacing: -0.02em;
+        }
+        .data-range-selector {
+            display: flex; gap: 4px; padding: 3px; background: var(--surface);
+            border-radius: var(--radius-sm); border: 1px solid var(--border); flex-shrink: 0;
+        }
+        .range-btn {
+            font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 500;
+            padding: 6px 14px; border: none; border-radius: 7px;
+            background: transparent; color: var(--text-dim); cursor: pointer; transition: all 0.2s ease;
+        }
+        .range-btn.active { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(212,164,76,0.15); }
+        .range-btn:hover:not(.active) { color: var(--text-secondary); }
+
+        /* Hero 统计卡片 */
+        .data-hero {
+            background: linear-gradient(145deg, rgba(31,30,25,0.95) 0%, rgba(23,22,19,0.95) 100%);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            animation: fadeUp 0.4s ease 0s both;
+        }
+        .data-hero::before {
+            content: '';
+            position: absolute; top: -40px; right: -40px;
+            width: 140px; height: 140px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .data-hero-label {
+            font-size: 12px; font-weight: 500; color: var(--text-dim);
+            letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 6px;
+        }
+        .data-hero-score {
+            font-size: 48px; font-weight: 700; color: var(--accent);
+            letter-spacing: -0.03em; line-height: 1;
+        }
+        .data-hero-score .hero-unit {
+            font-size: 20px; font-weight: 400; color: var(--text-dim); margin-left: 2px;
+        }
+        .data-hero-desc {
+            font-size: 13px; color: var(--text-secondary); margin-top: 8px; line-height: 1.5;
+        }
+        .data-hero-row {
+            display: flex; gap: 0; margin-top: 20px;
+            border-top: 1px solid var(--border); padding-top: 18px;
+        }
+        .data-hero-stat {
+            flex: 1; display: flex; flex-direction: column; align-items: center;
+            position: relative;
+        }
+        .data-hero-stat + .data-hero-stat::before {
+            content: '';
+            position: absolute; left: 0; top: 2px; bottom: 2px;
+            width: 1px; background: var(--border);
+        }
+        .data-hero-stat-num {
+            font-size: 22px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1;
+        }
+        .data-hero-stat-label {
+            font-size: 11px; color: var(--text-dim); margin-top: 5px; font-weight: 500;
+        }
+
+        /* Section 标题 */
+        .data-section {
+            margin-bottom: 20px;
+            animation: fadeUp 0.4s ease both;
+        }
+        .data-section:nth-child(2) { animation-delay: 0.05s; }
+        .data-section:nth-child(3) { animation-delay: 0.1s; }
+        .data-section:nth-child(4) { animation-delay: 0.15s; }
+        .data-section:nth-child(5) { animation-delay: 0.2s; }
+        .data-section:nth-child(6) { animation-delay: 0.25s; }
+        .data-section-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 14px;
+        }
+        .data-section-title {
+            font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -0.01em;
+        }
+        .data-section-badge {
+            font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 500;
+        }
+        .data-section-badge.up { background: var(--green-dim); color: var(--green); }
+        .data-section-badge.stable { background: var(--amber-dim); color: var(--amber); }
+
+        /* 折线图 SVG */
+        .line-chart-wrap {
+            background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+            padding: 20px 18px 14px;
+            overflow: hidden;
+        }
+        .line-chart-svg {
+            width: 100%; height: 140px; display: block;
+        }
+        .line-chart-svg .grid-line {
+            stroke: rgba(255,255,255,0.04); stroke-width: 1;
+        }
+        .line-chart-svg .data-line {
+            fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
+        }
+        .line-chart-svg .data-line.green { stroke: var(--green); }
+        .line-chart-svg .data-line.amber { stroke: var(--amber); }
+        .line-chart-svg .data-line.accent { stroke: var(--accent); }
+        .line-chart-svg .data-dot { stroke-width: 2; stroke: var(--card); }
+        .line-chart-svg .data-dot.green { fill: var(--green); }
+        .line-chart-svg .data-dot.amber { fill: var(--amber); }
+        .line-chart-svg .data-dot.accent { fill: var(--accent); }
+        .line-chart-svg .area-fill { opacity: 0.1; }
+        .line-chart-svg .area-fill.green { fill: var(--green); }
+        .line-chart-svg .area-fill.amber { fill: var(--amber); }
+        .line-chart-svg .area-fill.accent { fill: var(--accent); }
+        .line-chart-labels {
+            display: flex; justify-content: space-between;
+            padding-top: 10px;
+        }
+        .line-chart-labels span {
+            font-size: 10px; color: var(--text-dim); font-weight: 500;
+        }
+
+        /* 区间分布 — 圆环 + 列表 */
+        .zone-card {
+            background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+            padding: 20px;
+            display: flex; align-items: center; gap: 20px;
+        }
+        .zone-donut-wrap {
+            flex-shrink: 0; position: relative; width: 110px; height: 110px;
+        }
+        .zone-donut-svg {
+            width: 110px; height: 110px; transform: rotate(-90deg);
+        }
+        .zone-donut-svg circle {
+            fill: none; stroke-width: 10; cx: 55; cy: 55; r: 45;
+        }
+        .zone-donut-center {
+            position: absolute; inset: 0;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .zone-donut-center .zone-donut-val {
+            font-size: 20px; font-weight: 700; color: var(--text); line-height: 1;
+        }
+        .zone-donut-center .zone-donut-lbl {
+            font-size: 10px; color: var(--text-dim); margin-top: 3px; font-weight: 500;
+        }
+        .zone-legend {
+            flex: 1; display: flex; flex-direction: column; gap: 8px; min-width: 0;
+        }
+        .zone-legend-item {
+            display: flex; align-items: center; gap: 8px;
+        }
+        .zone-legend-dot {
+            width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+        }
+        .zone-legend-dot.z1 { background: var(--blue); }
+        .zone-legend-dot.z2 { background: var(--green); }
+        .zone-legend-dot.z3 { background: var(--accent); }
+        .zone-legend-dot.z4 { background: var(--amber); }
+        .zone-legend-dot.z5 { background: var(--red); }
+        .zone-legend-name {
+            font-size: 12px; color: var(--text-secondary); font-weight: 500; flex: 1;
+            min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .zone-legend-pct {
+            font-size: 12px; font-weight: 600; color: var(--text); flex-shrink: 0;
+        }
+
+        /* 训练难点 TOP5 — 紧凑列表 */
+        .diff-card {
+            background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+            overflow: hidden;
+        }
+        .diff-row {
+            display: flex; align-items: center; gap: 14px;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
+        }
+        .diff-row:last-child { border-bottom: none; }
+        .diff-rank {
+            width: 26px; height: 26px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 700; flex-shrink: 0;
+        }
+        .diff-rank.r1 { background: var(--red-dim); color: var(--red); }
+        .diff-rank.r2 { background: var(--amber-dim); color: var(--amber); }
+        .diff-rank.r3 { background: var(--amber-dim); color: var(--amber); }
+        .diff-rank.r4 { background: var(--accent-dim); color: var(--accent); }
+        .diff-rank.r5 { background: var(--accent-dim); color: var(--accent); }
+        .diff-info { flex: 1; min-width: 0; }
+        .diff-name { font-size: 14px; font-weight: 500; color: var(--text); }
+        .diff-bar-track {
+            width: 100%; height: 4px; border-radius: 2px;
+            background: rgba(255,255,255,0.06); margin-top: 8px;
+        }
+        .diff-bar-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
+        .diff-bar-fill.amber { background: var(--amber); }
+        .diff-bar-fill.red { background: var(--red); }
+        .diff-count {
+            font-size: 12px; color: var(--text-dim); font-weight: 500; flex-shrink: 0;
+        }
+
+        /* Notify Page */
+        .notify-list { display: flex; flex-direction: column; gap: 12px; }
+        .notify-item {
+            display: flex; gap: 14px; padding: 18px; background: var(--card);
+            border: 1px solid var(--border); border-radius: var(--radius);
+            transition: border-color 0.2s, background 0.2s; animation: fadeUp 0.4s ease both;
+        }
+        .notify-item:nth-child(1){animation-delay:.05s}.notify-item:nth-child(2){animation-delay:.1s}.notify-item:nth-child(3){animation-delay:.15s}.notify-item:nth-child(4){animation-delay:.2s}
+        .notify-item:hover { border-color: var(--border-light); background: var(--card-hover); }
+        .notify-icon-wrap {
+            width: 40px; height: 40px; border-radius: 12px; display: flex;
+            align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;
+        }
+        .notify-icon-wrap.blue { background: var(--blue-dim); }
+        .notify-icon-wrap.amber { background: var(--accent-dim); }
+        .notify-icon-wrap.green { background: var(--green-dim); }
+        .notify-icon-wrap.red { background: var(--red-dim); }
+        .notify-content { flex: 1; min-width: 0; }
+        .notify-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+        .notify-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+        .notify-time { font-size: 11px; color: var(--text-dim); margin-top: 8px; display: block; }
+
+        /* Bottom Nav */
+        .nav {
+            position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+            max-width: 430px; width: 100%; display: flex; justify-content: space-around;
+            padding: 8px var(--gutter); padding-bottom: max(8px, env(safe-area-inset-bottom));
+            background: rgba(13,12,10,0.92); backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--border); z-index: 100;
+        }
+        .nav-btn {
+            flex: 1; display: flex; flex-direction: column; align-items: center;
+            gap: 4px; padding: 10px 0; border: none; background: none; cursor: pointer;
+            color: var(--text-dim); font-family: inherit; font-size: 11px;
+            font-weight: 500; transition: color 0.2s; position: relative;
+        }
+        .nav-btn svg { width: 22px; height: 22px; stroke-width: 1.5; transition: transform 0.2s; }
+        .nav-btn.active { color: var(--accent); }
+        .nav-btn.active svg { transform: scale(1.08); }
+        .nav-btn .badge {
+            position: absolute; top: 4px; right: 50%; transform: translateX(14px);
+            min-width: 16px; height: 16px; padding: 0 5px; border-radius: 9px;
+            background: var(--red); color: white; font-size: 10px; font-weight: 600;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+        .hidden { display: none !important; }
+
+        @media (min-width: 431px) {
+            body {
+                display: flex; justify-content: center; align-items: flex-start;
+                min-height: 100vh; padding: 20px 0;
+                background: radial-gradient(ellipse at 30% 30%, rgba(30,26,18,0.5) 0%, transparent 60%), #080706;
+            }
+            .app {
+                border-radius: 24px; border: 1px solid rgba(255,255,255,0.06);
+                box-shadow: 0 0 0 1px rgba(0,0,0,0.3), 0 20px 80px rgba(0,0,0,0.5);
+                overflow: hidden; min-height: min(900px, calc(100vh - 40px));
+            }
+            .nav { border-radius: 0 0 24px 24px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="grain"></div>
+
+<div class="app">
+    <!-- Header -->
+    <div class="header" id="headerArea">
+        <div>
+            <div class="greeting-small" id="greetingText">晚上好，</div>
+            <div class="greeting-name">王队员</div>
+            <div class="greeting-date">6月15日 · 周一 · 恢复周</div>
+        </div>
+        <div class="avatar-ring" onclick="openSheet()" title="我的">
+            <div class="avatar">王</div>
+        </div>
+    </div>
+
+    <!-- Page: 录制 -->
+    <section class="page active" id="page-record">
+        <div class="status-card rest">
+            <div class="status-icon">🌙</div>
+            <div>
+                <div class="status-title">今天好好休息</div>
+                <div class="status-desc">身体恢复也是训练的一部分，为接下来的训练储备能量</div>
+            </div>
+        </div>
+        <div class="week-strip">
+            <div class="week-day today"><span class="day-label">一</span><span class="day-date">15</span><span class="day-dot rest"></span></div>
+            <div class="week-day"><span class="day-label">二</span><span class="day-date">16</span><span class="day-dot rest"></span></div>
+            <div class="week-day"><span class="day-label">三</span><span class="day-date">17</span><span class="day-dot rest"></span></div>
+            <div class="week-day"><span class="day-label">四</span><span class="day-date">18</span><span class="day-dot rest"></span></div>
+            <div class="week-day"><span class="day-label">五</span><span class="day-date">19</span><span class="day-dot rest"></span></div>
+            <div class="week-day"><span class="day-label">六</span><span class="day-date">20</span><span class="day-dot rest"></span></div>
+            <div class="week-day"><span class="day-label">日</span><span class="day-date">21</span><span class="day-dot rest"></span></div>
+        </div>
+        <div class="voice-section">
+            <button class="voice-btn" id="voiceBtn" onclick="toggleRecording()">
+                <span class="ring ring-1"></span><span class="ring ring-2"></span><span class="ring ring-3"></span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="1" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/>
+                    <line x1="12" y1="17" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/>
+                </svg>
+            </button>
+            <div class="waveform hidden" id="waveform">
+                <span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span>
+                <span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span>
+                <span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span>
+                <span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span>
+                <span class="wave-bar"></span>
+            </div>
+            <div class="recording-timer hidden" id="timer">0:00</div>
+            <p class="voice-label" id="voiceLabel">点击记录今天的训练感受</p>
+            <button class="import-link" onclick="alert('选择 .fit 文件导入')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                导入手表数据
+            </button>
+        </div>
+        <div class="recent-section">
+            <div class="section-title">最近记录</div>
+            <div class="recent-card" onclick="switchPage('page-diary')">
+                <div class="recent-top"><span class="recent-date">昨天 · 6月14日 周六</span><span class="recent-mood">😊</span></div>
+                <p class="recent-text">今天完成了力量训练和跑步，节奏很舒服。跑步的时候感觉腿很轻，没有上周那种沉重感。训练完心情不错，和队友聊了会天。</p>
+                <span class="recent-tag">教练已查看</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Page: 日记 -->
+    <section class="page" id="page-diary">
+        <h1 class="page-title">训练日记</h1>
+        <div class="timeline">
+            <div class="entry"><div class="entry-dot good"></div>
+                <div class="entry-card">
+                    <div class="entry-header"><span class="entry-date">6月14日 · 周六</span><span class="entry-mood">😊</span></div>
+                    <p class="entry-text">今天完成了力量训练和跑步，节奏很舒服。跑步的时候感觉腿很轻，没有上周那种沉重感。</p>
+                    <div class="entry-meta"><span class="entry-badge viewed">教练已查看</span></div>
+                </div>
+            </div>
+            <div class="entry"><div class="entry-dot ok"></div>
+                <div class="entry-card">
+                    <div class="entry-header"><span class="entry-date">6月13日 · 周五</span><span class="entry-mood">😐</span></div>
+                    <p class="entry-text">恢复跑，身体还是有点疲惫。昨天练得比较狠，今天主要就是慢跑放松。</p>
+                    <div class="entry-meta"><span class="entry-badge viewed">教练已查看</span></div>
+                </div>
+            </div>
+            <div class="entry"><div class="entry-dot great"></div>
+                <div class="entry-card">
+                    <div class="entry-header"><span class="entry-date">6月12日 · 周四</span><span class="entry-mood">🔥</span></div>
+                    <p class="entry-text">间歇训练！今天状态出奇地好，每一组都能保持节奏。跑完特别有成就感。</p>
+                    <div class="entry-meta"><span class="entry-badge viewed">教练已查看</span></div>
+                </div>
+            </div>
+            <div class="entry"><div class="entry-dot rest"></div>
+                <div class="entry-card">
+                    <div class="entry-header"><span class="entry-date">6月11日 · 周三</span><span class="entry-mood">😌</span></div>
+                    <p class="entry-text">休息日。做了一些拉伸和泡沫轴放松。膝盖还是有点不舒服，跟队医说了。</p>
+                    <div class="entry-meta"><span class="entry-badge alert">队医已关注</span></div>
+                </div>
+            </div>
+            <div class="entry"><div class="entry-dot tired"></div>
+                <div class="entry-card">
+                    <div class="entry-header"><span class="entry-date">6月9日 · 周一</span><span class="entry-mood">😮‍💨</span></div>
+                    <p class="entry-text">今天强度课，跑完真的累瘫了。不过教练说配速比上周快了一点，有进步。</p>
+                    <div class="entry-meta"><span class="entry-badge viewed">教练已查看</span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Page: 数据总结 — 完全重新设计 -->
+    <section class="page" id="page-data">
+
+        <!-- 标题 + 范围选择 -->
+        <div class="data-page-header">
+            <h1 class="data-page-title">数据总结</h1>
+            <div class="data-range-selector">
+                <button class="range-btn active">近30天</button>
+                <button class="range-btn">近7天</button>
+            </div>
+        </div>
+
+        <!-- Hero 卡片：评分 + 三项统计 -->
+        <div class="data-hero">
+            <div class="data-hero-label">平均自评</div>
+            <div class="data-hero-score">7.4<span class="hero-unit"> / 10</span></div>
+            <div class="data-hero-desc">近 30 天共完成 12 次训练，整体状态稳步上升</div>
+            <div class="data-hero-row">
+                <div class="data-hero-stat">
+                    <div class="data-hero-stat-num" style="color: var(--green)">12</div>
+                    <div class="data-hero-stat-label">训练次数</div>
+                </div>
+                <div class="data-hero-stat">
+                    <div class="data-hero-stat-num" style="color: var(--amber)">68%</div>
+                    <div class="data-hero-stat-label">平均恢复度</div>
+                </div>
+                <div class="data-hero-stat">
+                    <div class="data-hero-stat-num" style="color: var(--accent)">↑</div>
+                    <div class="data-hero-stat-label">评分趋势</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 评分趋势 — SVG 折线图 -->
+        <div class="data-section">
+            <div class="data-section-header">
+                <span class="data-section-title">评分趋势（最近 7 次）</span>
+                <span class="data-section-badge up">↑ 上升</span>
+            </div>
+            <div class="line-chart-wrap">
+                <svg class="line-chart-svg" viewBox="0 0 360 140" preserveAspectRatio="none">
+                    <!-- 网格线 -->
+                    <line class="grid-line" x1="0" y1="35" x2="360" y2="35"/>
+                    <line class="grid-line" x1="0" y1="70" x2="360" y2="70"/>
+                    <line class="grid-line" x1="0" y1="105" x2="360" y2="105"/>
+                    <!-- 区域填充 -->
+                    <path class="area-fill green" d="M0,95 L60,80 L120,108 L180,64 L240,48 L300,70 L360,21 L360,140 L0,140 Z"/>
+                    <!-- 折线 -->
+                    <polyline class="data-line green" points="0,95 60,80 120,108 180,64 240,48 300,70 360,21"/>
+                    <!-- 数据点 -->
+                    <circle class="data-dot green" cx="0" cy="95" r="4"/>
+                    <circle class="data-dot green" cx="60" cy="80" r="4"/>
+                    <circle class="data-dot green" cx="120" cy="108" r="4"/>
+                    <circle class="data-dot green" cx="180" cy="64" r="4"/>
+                    <circle class="data-dot green" cx="240" cy="48" r="4"/>
+                    <circle class="data-dot green" cx="300" cy="70" r="4"/>
+                    <circle class="data-dot green" cx="360" cy="21" r="4.5"/>
+                </svg>
+                <div class="line-chart-labels">
+                    <span>5/28</span><span>5/30</span><span>6/1</span><span>6/4</span><span>6/7</span><span>6/10</span><span>6/14</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 疲劳度趋势 — SVG 折线图 -->
+        <div class="data-section">
+            <div class="data-section-header">
+                <span class="data-section-title">疲劳度趋势（最近 7 次）</span>
+                <span class="data-section-badge stable">→ 平稳</span>
+            </div>
+            <div class="line-chart-wrap">
+                <svg class="line-chart-svg" viewBox="0 0 360 140" preserveAspectRatio="none">
+                    <line class="grid-line" x1="0" y1="35" x2="360" y2="35"/>
+                    <line class="grid-line" x1="0" y1="70" x2="360" y2="70"/>
+                    <line class="grid-line" x1="0" y1="105" x2="360" y2="105"/>
+                    <path class="area-fill amber" d="M0,67 L60,48 L120,42 L180,58 L240,77 L300,53 L360,63 L360,140 L0,140 Z"/>
+                    <polyline class="data-line amber" points="0,67 60,48 120,42 180,58 240,77 300,53 360,63"/>
+                    <circle class="data-dot amber" cx="0" cy="67" r="4"/>
+                    <circle class="data-dot amber" cx="60" cy="48" r="4"/>
+                    <circle class="data-dot amber" cx="120" cy="42" r="4"/>
+                    <circle class="data-dot amber" cx="180" cy="58" r="4"/>
+                    <circle class="data-dot amber" cx="240" cy="77" r="4"/>
+                    <circle class="data-dot amber" cx="300" cy="53" r="4"/>
+                    <circle class="data-dot amber" cx="360" cy="63" r="4"/>
+                </svg>
+                <div class="line-chart-labels">
+                    <span>5/28</span><span>5/30</span><span>6/1</span><span>6/4</span><span>6/7</span><span>6/10</span><span>6/14</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 训练区间分布 — 圆环图 + 图例 -->
+        <div class="data-section">
+            <div class="data-section-header">
+                <span class="data-section-title">训练区间分布（近 30 天）</span>
+            </div>
+            <div class="zone-card">
+                <div class="zone-donut-wrap">
+                    <svg class="zone-donut-svg" viewBox="0 0 110 110">
+                        <!-- 背景环 -->
+                        <circle stroke="rgba(255,255,255,0.04)" r="45" cx="55" cy="55"/>
+                        <!-- 42% E -->
+                        <circle stroke="var(--blue)" stroke-dasharray="118.75 164.77" stroke-dashoffset="0"/>
+                        <!-- 24% M -->
+                        <circle stroke="var(--green)" stroke-dasharray="67.86 164.77" stroke-dashoffset="-118.75"/>
+                        <!-- 18% T -->
+                        <circle stroke="var(--accent)" stroke-dasharray="50.89 164.77" stroke-dashoffset="-186.61"/>
+                        <!-- 11% I -->
+                        <circle stroke="var(--amber)" stroke-dasharray="31.21 164.77" stroke-dashoffset="-237.50"/>
+                        <!-- 5% R -->
+                        <circle stroke="var(--red)" stroke-dasharray="14.19 164.77" stroke-dashoffset="-268.71"/>
+                    </svg>
+                    <div class="zone-donut-center">
+                        <span class="zone-donut-val">5</span>
+                        <span class="zone-donut-lbl">区间</span>
+                    </div>
+                </div>
+                <div class="zone-legend">
+                    <div class="zone-legend-item">
+                        <span class="zone-legend-dot z1"></span>
+                        <span class="zone-legend-name">E 轻松跑</span>
+                        <span class="zone-legend-pct">42%</span>
+                    </div>
+                    <div class="zone-legend-item">
+                        <span class="zone-legend-dot z2"></span>
+                        <span class="zone-legend-name">M 马拉松</span>
+                        <span class="zone-legend-pct">24%</span>
+                    </div>
+                    <div class="zone-legend-item">
+                        <span class="zone-legend-dot z3"></span>
+                        <span class="zone-legend-name">T 节奏跑</span>
+                        <span class="zone-legend-pct">18%</span>
+                    </div>
+                    <div class="zone-legend-item">
+                        <span class="zone-legend-dot z4"></span>
+                        <span class="zone-legend-name">I 间歇</span>
+                        <span class="zone-legend-pct">11%</span>
+                    </div>
+                    <div class="zone-legend-item">
+                        <span class="zone-legend-dot z5"></span>
+                        <span class="zone-legend-name">R 冲刺</span>
+                        <span class="zone-legend-pct">5%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 常见训练难点 TOP5 -->
+        <div class="data-section">
+            <div class="data-section-header">
+                <span class="data-section-title">常见训练难点 TOP5</span>
+            </div>
+            <div class="diff-card">
+                <div class="diff-row">
+                    <div class="diff-rank r1">1</div>
+                    <div class="diff-info">
+                        <div class="diff-name">心率控制</div>
+                        <div class="diff-bar-track"><div class="diff-bar-fill red" style="width:100%"></div></div>
+                    </div>
+                    <span class="diff-count">2次</span>
+                </div>
+                <div class="diff-row">
+                    <div class="diff-rank r2">2</div>
+                    <div class="diff-info">
+                        <div class="diff-name">天气影响</div>
+                        <div class="diff-bar-track"><div class="diff-bar-fill amber" style="width:50%"></div></div>
+                    </div>
+                    <span class="diff-count">1次</span>
+                </div>
+                <div class="diff-row">
+                    <div class="diff-rank r3">3</div>
+                    <div class="diff-info">
+                        <div class="diff-name">深蹲姿势不适</div>
+                        <div class="diff-bar-track"><div class="diff-bar-fill amber" style="width:50%"></div></div>
+                    </div>
+                    <span class="diff-count">1次</span>
+                </div>
+                <div class="diff-row">
+                    <div class="diff-rank r4">4</div>
+                    <div class="diff-info">
+                        <div class="diff-name">跑量过大导致腿膝不适</div>
+                        <div class="diff-bar-track"><div class="diff-bar-fill amber" style="width:50%"></div></div>
+                    </div>
+                    <span class="diff-count">1次</span>
+                </div>
+                <div class="diff-row">
+                    <div class="diff-rank r5">5</div>
+                    <div class="diff-info">
+                        <div class="diff-name">未能完成加速跑</div>
+                        <div class="diff-bar-track"><div class="diff-bar-fill amber" style="width:50%"></div></div>
+                    </div>
+                    <span class="diff-count">1次</span>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- Page: 通知 -->
+    <section class="page" id="page-notify">
+        <h1 class="page-title">消息</h1>
+        <div class="notify-list">
+            <div class="notify-item"><div class="notify-icon-wrap blue">📋</div><div class="notify-content"><div class="notify-title">训练计划更新</div><div class="notify-desc">张教练调整了本周的训练计划，周四将增加一组间歇训练</div><span class="notify-time">2小时前</span></div></div>
+            <div class="notify-item"><div class="notify-icon-wrap amber">⚠️</div><div class="notify-content"><div class="notify-title">恢复提醒</div><div class="notify-desc">本周训练负荷较高，建议适当增加休息时间</div><span class="notify-time">5小时前</span></div></div>
+            <div class="notify-item"><div class="notify-icon-wrap green">💊</div><div class="notify-content"><div class="notify-title">理疗安排</div><div class="notify-desc">李队医已为您安排周三下午 3:00 进行膝盖理疗</div><span class="notify-time">昨天</span></div></div>
+            <div class="notify-item"><div class="notify-icon-wrap red">🔔</div><div class="notify-content"><div class="notify-title">关注提醒</div><div class="notify-desc">队医注意到您近期膝盖不适的反馈，已与教练沟通调整训练强度</div><span class="notify-time">昨天</span></div></div>
+        </div>
+    </section>
+
+    <!-- Bottom Nav -->
+    <nav class="nav">
+        <button class="nav-btn active" data-page="page-record" onclick="switchPage('page-record')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="1" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/>
+                <line x1="12" y1="17" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/>
+            </svg>
+            <span>录制</span>
+        </button>
+        <button class="nav-btn" data-page="page-diary" onclick="switchPage('page-diary')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+            </svg>
+            <span>日记</span>
+        </button>
+        <button class="nav-btn" data-page="page-data" onclick="switchPage('page-data')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+            <span>数据</span>
+        </button>
+        <button class="nav-btn" data-page="page-notify" onclick="switchPage('page-notify')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            <span>通知</span>
+            <span class="badge">2</span>
+        </button>
+    </nav>
+
+    <!-- Profile Sheet -->
+    <div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet()"></div>
+    <div class="sheet" id="sheet">
+        <div class="sheet-handle-area" onclick="closeSheet()"><div class="sheet-handle"></div></div>
+        <div class="sheet-header">
+            <div class="sheet-avatar-ring"><div class="sheet-avatar">王</div></div>
+            <div class="sheet-name">王队员</div>
+            <span class="sheet-role">运动员</span>
+        </div>
+        <div class="sheet-info-group">
+            <div class="sheet-info-row"><span class="sheet-info-label">账号名</span><span class="sheet-info-value">王队员</span></div>
+            <div class="sheet-info-row"><span class="sheet-info-label">角色</span><span class="sheet-info-value">运动员</span></div>
+            <div class="sheet-info-row"><span class="sheet-info-label">用户 ID</span><span class="sheet-info-value">2</span></div>
+        </div>
+        <button class="sheet-logout" onclick="closeSheet(); setTimeout(()=>alert('已退出登录'), 300);">退出登录</button>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const h = new Date().getHours();
+        let g = '你好';
+        if (h < 6) g = '夜深了，'; else if (h < 11) g = '早上好，';
+        else if (h < 14) g = '中午好，'; else if (h < 18) g = '下午好，'; else g = '晚上好，';
+        document.getElementById('greetingText').textContent = g;
+    })();
+
+    function switchPage(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.page === pageId);
+        });
+        document.getElementById('headerArea').style.display = (pageId === 'page-record') ? 'flex' : 'none';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    let isRecording = false, recordTimer = null, seconds = 0;
+    function toggleRecording() {
+        const btn = document.getElementById('voiceBtn');
+        const waveform = document.getElementById('waveform');
+        const timer = document.getElementById('timer');
+        const label = document.getElementById('voiceLabel');
+        if (!isRecording) {
+            isRecording = true; btn.classList.add('recording');
+            waveform.classList.remove('hidden'); timer.classList.remove('hidden');
+            label.textContent = '正在录音… 点击结束'; label.classList.add('active');
+            seconds = 0; timer.textContent = '0:00';
+            recordTimer = setInterval(() => {
+                seconds++; const m = Math.floor(seconds/60), s = seconds%60;
+                timer.textContent = m + ':' + String(s).padStart(2,'0');
+            }, 1000);
+        } else {
+            isRecording = false; btn.classList.remove('recording');
+            waveform.classList.add('hidden'); timer.classList.add('hidden');
+            label.textContent = '已提交，正在为你分析…'; label.classList.remove('active');
+            clearInterval(recordTimer);
+            setTimeout(() => { label.textContent = '今天的感受已记录 ✓';
+                setTimeout(() => { label.textContent = '点击记录今天的训练感受'; }, 2500);
+            }, 1800);
+        }
+    }
+
+    function openSheet() {
+        document.getElementById('sheetOverlay').classList.add('open');
+        document.getElementById('sheet').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeSheet() {
+        document.getElementById('sheetOverlay').classList.remove('open');
+        document.getElementById('sheet').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    document.querySelectorAll('.range-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+</script>
+
+</body>
+</html>

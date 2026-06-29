@@ -91,6 +91,10 @@ const it = {
     recent_injury: "Infortuni Recenti",
     sleep_quality: "Qualità del Sonno",
     training_monotony: "Monotonia Allenamento",
+    today_plan_content: "Piano di Oggi",
+    today_plan_zone: "Zona Obiettivo",
+    today_plan_pace: "Ritmo Obiettivo",
+    today_plan_distance: "Distanza Stimata",
   },
 
   // Etichette schede risultato
@@ -112,6 +116,11 @@ const it = {
     acwrLabel: "Stima ACWR",
     loadTrendLabel: "Tendenza Carico",
     monotonyLabel: "Rischio Monotonia",
+    trainingZoneLabel: "Zona Allenamento",
+    vdotLabel: "Stima VDOT",
+    trainingQualityLabel: "Qualità Allenamento",
+    intensityFeedbackTitle: "Analisi Zona Intensità",
+    danielsRecoTitle: "Raccomandazione Daniels",
   },
 
   // Mappatura enum: livello stato
@@ -187,45 +196,99 @@ Per l'analisi macro dell'organizzazione dell'allenamento (come periodizzare, ges
 - Durata forma ottimale: 7-14 giorni
 - Rischio monotonia: mancanza di variazione porta al sovrallenamento
 
+[Quadro 3: Psicologia dello Sport (Arnold LeUnes)]
+Per l'analisi dello stato mentale dell'atleta (emozione, motivazione, fiducia, ansia):
+- Ansia 3 dimensioni: ansia somatica (tensione muscolare), ansia cognitiva (pensieri negativi), fiducia-stato
+- Teoria dell'attribuzione (Weiner): successo/fallimento = f(abilità, sforzo, difficoltà compito, fortuna)
+- Teoria dell'auto-efficacia (Bandura): la fiducia è un predittore chiave della performance
+- Obiettivi di achievement: obiettivi di padronanza vs obiettivi di prestazione
+- Motivazione intrinseca vs estrinseca: ricompense eccessive possono danneggiare la motivazione intrinseca
+- Controllo cognitivo: blocco del pensiero, contrasto pensieri negativi, ristrutturazione
+- Risposta infortunio 3 fasi: depressione → negazione → determinazione ad affrontare
+- Modello attenzione: ampiezza (largo-stretto) × direzione (interno-esterno)
+
+[Riconoscimento Stati Psicologici Profondi]
+Identificare questi segnali psicologici dal testo/voce dell'atleta:
+Motivazione: forte intrinseca / normale / in calo / persa
+Emozione: positivo / neutro / negativo / ansioso / arrabbiato
+Fiducia: sicuro / incerto / carente / eccessivo
+Attenzione: focalizzato / distratto / iper-focalizzato
+Pressione: allenamento / gara / esterna / interna
+Recupero: ben recuperato / normale / insufficiente / burnout
+
 [Regole di Priorità]
 - Daniels → micro livello corsa (ritmo, FC, limiti volume)
 - Bompa → macro livello periodizzazione (cicli, carico, recupero, preparazione gara)
-- Quando coerenti, sintetizzare; quando diversi, analizzare da ciascuna prospettiva
+- Psicologia dello Sport → analisi stato mentale atleta (emozione, motivazione, fiducia, ansia)
+- Quando coerenti, sintetizzare tutti; quando diversi, analizzare da ciascuna prospettiva
+
+[Regole Messaggio Cura Atleta]
+- Se emozione negativa/ansia/calo motivazione → messaggio di cura caldo
+- Se emozione positiva → messaggio incoraggiante
+- Se neutro → care_message null
+- NON esporre mai analisi psicologica professionale nel care_message
 
 Il tuo compito è analizzare la trascrizione vocale dell'atleta dopo l'allenamento, i punteggi soggettivi, i tag e i dati di periodizzazione per generare un report strutturato.
 
+[PRINCIPIO DUALE CRITICO]
+Questo sistema usa un'output a doppia vista: ciò che gli atleti vedono e ciò che gli allenatori vedono è completamente diverso.
+- Vista atleta = diario di allenamento (solo fatti, nessuna analisi professionale, nessun termine tecnico)
+- Vista allenatore = analista tattico (supporto decisionale professionale completo)
+
+Gli atleti NON devono MAI vedere: zone di allenamento (E/M/T/I/R), valori VDOT, valutazioni qualità, analisi carico (ACWR), analisi periodizzazione, valutazioni rischi, consigli professionali.
+
 [Requisiti del formato di output]
-Produci SOLO JSON puro nel seguente formato. NON avvolgere in blocchi di codice markdown. NON produrre alcun testo, spiegazioni o suggerimenti al di fuori del JSON:
+Produci SOLO JSON puro nel seguente formato:
 
 {
-  "overall_score": number,
-  "status_level": "优秀|正常|关注|预警",
-  "emotion": {
-    "polarity": "积极|中性|消极",
-    "confidence": number,
-    "signals": string[]
+  "athlete_view": {
+    "summary": "string (≤30 caratteri, descrizione fattuale, nessun termine tecnico)",
+    "training_log": ["Completato riscaldamento 10min", "Completati 5 intervalli", "Completato defaticamento"],
+    "highlights": ["Controllo ritmo stabile nei primi set", "Miglioramento rispetto alla volta scorsa"],
+    "areas_to_work": ["Lieve calo ritmo alla fine, mantenere il ritmo la prossima volta"],
+    "encouragement": "string (breve incoraggiamento positivo, ≤20 caratteri)",
+    "care_message": "string|null (messaggio di cura se emozione negativa rilevata, incoraggiante se positivo, null se neutro)"
   },
-  "fatigue": {
-    "level": "低|中|高",
-    "body_parts": string[],
-    "evidence": string
-  },
-  "difficulty_points": string[],
-  "diary_text": string,
-  "coach_summary": string,
-  "recommendations": string[],
-  "risk_flag": boolean,
-  "risk_reason": string,
 
-  "periodization_analysis": string,
-  "load_management": {
-    "acwr_estimate": string,
-    "load_trend": string,
-    "monotony_risk": "低|中|高"
+  "coach_view": {
+    "detailed_analysis": "string (≤100 caratteri, analisi professionale)",
+    "zone_assessment": "string (≤50 caratteri, valutazione zona intensità)",
+    "periodization_note": "string (≤50 caratteri, note periodizzazione)",
+    "psychology_analysis": "string (≤80 caratteri, analisi stato mentale basata sulla psicologia dello sport)",
+    "psychology_assessment": {
+      "detected_signals": ["calo_motivazione", "ansia"],
+      "analysis": "string (≤120 caratteri, analisi profonda dello stato psicologico)",
+      "suggestion": "string (≤80 caratteri, suggerimenti di intervento psicologico)"
+    },
+    "risk_assessment": "string (≤50 caratteri, valutazione rischio)",
+    "ai_suggestion": "string (≤80 caratteri, suggerimento AI, nota: usare giudizio professionale)"
   },
-  "recovery_status": string,
-  "phase_alignment": string,
-  "periodization_recommendation": string
+
+  "emotion_display": "😊 Positivo",
+  "fatigue_display": "Basso",
+
+  "diary_text": "string (diario allenamento AI, ≤150 caratteri, prima persona)",
+
+  "overall_score": number,        // Deve essere 1.0-10.0, MAI superare 10
+  "status_level": "优秀|正常|关注|预警",
+  "emotion": {"polarity": "积极|中性|消极", "confidence": number, "signals": string[]},
+  "fatigue": {"level": "低|中|高", "body_parts": string[], "evidence": string},
+  "difficulty_points": string[],
+  "training_zone": "E|M|T|I|R",
+  "zone_distribution": {"E": number, "M": number, "T": number, "I": number, "R": number},
+  "vdot_estimate": number,
+  "training_quality": "优秀|良好|一般|需改进",
+  "intensity_feedback": "string",
+  "periodization_analysis": "string",
+  "load_management": {"acwr_estimate": "string", "load_trend": "string", "monotony_risk": "低|中|高"},
+  "recovery_status": "string",
+  "phase_alignment": "string",
+  "coach_summary": "string",
+  "recommendations": string[],
+  "daniels_recommendation": "string",
+  "periodization_recommendation": "string",
+  "risk_flag": boolean,
+  "risk_reason": "string|null"
 }
 
 IMPORTANTE: Tutti i campi di testo devono essere scritti in italiano. Mantieni i valori enum in cinese per coerenza di sistema.`,
@@ -243,6 +306,12 @@ Tendenza Volume 4 Settimane: {{weekly_volume_trend}}
 Data Gara Obiettivo: {{target_race_date}}
 Giorni alla Gara: {{days_to_race}}
 
+【Piano di Allenamento di Oggi】
+Contenuto: {{today_plan_content}}
+Zona Obiettivo: {{today_plan_zone}}
+Ritmo Obiettivo: {{today_plan_pace}}
+Distanza Stimata: {{today_plan_distance}}
+
 【Punteggi Soggettivi (1-10)】
 Stato Fisico: {{body_score}}
 Stato Mentale: {{mind_score}}
@@ -255,6 +324,10 @@ Padroneggiamento Difficoltà: {{difficulty_score}}
 Infortuni Recenti: {{recent_injury}}
 Qualità del Sonno (ultimi giorni): {{sleep_quality}}
 Monotonia Allenamento (autovalutazione): {{training_monotony}}
+
+【Stato Mentale】
+Tag Umore: {{mood_tags}}
+Descrizione Umore: {{mood_description}}
 
 【Trascrizione Vocale】
 {{transcript}}
@@ -287,6 +360,396 @@ Genera un report strutturato di analisi dell'allenamento integrando la Formula d
     recent_injury: "Nessun infortunio grave, lieve disagio al ginocchio sinistro",
     sleep_quality: "Discreta",
     training_monotony: "Media",
+    today_plan_content: "Intervalli 1000m x 5, ritmo 3:45/km, recupero 90s",
+    today_plan_zone: "I (Intervalli)",
+    today_plan_pace: "3:45/km",
+    today_plan_distance: "8km",
+  },
+
+  // Chiavi condivise
+  loading: "Caricamento...",
+  unknown: "Sconosciuto",
+  back: "Indietro",
+  confirm: "Conferma",
+  cancel: "Annulla",
+  save: "Salva",
+  delete: "Elimina",
+  edit: "Modifica",
+  close: "Chiudi",
+  retry: "Riprova",
+  error: {
+    loadFailed: "Caricamento fallito, riprova",
+    pageError: "Si è verificato un problema",
+    pageErrorMsg: "Spiacente, si è verificato un errore durante il rendering. Puoi provare a ricare o tornare alla pagina iniziale.",
+    reload: "Ricarica",
+    goHome: "Vai alla Home",
+    devDetails: "Dettagli Errore (Modalità Sviluppo)",
+  },
+  time: {
+    justNow: "Ora",
+    minutesAgo: "{n}min fa",
+    hoursAgo: "{n}h fa",
+    daysAgo: "{n}g fa",
+  },
+
+  // ============================================
+  // Allenatore Principale
+  // ============================================
+  coach: {
+    // Navigazione
+    navWorkbench: "Home",
+    navPlan: "Piano",
+    navRecord: "Registro",
+    navNotify: "Avvisi",
+
+    // Generale
+    greetingMorning: "Buongiorno,",
+    greetingAfternoon: "Buon pomeriggio,",
+    greetingEvening: "Buonasera,",
+    role: "Allenatore Principale",
+    save: "Salva",
+    cancel: "Annulla",
+    delete: "Elimina",
+    edit: "Modifica",
+    loading: "Caricamento...",
+    noData: "Nessun dato",
+    confirm: "Conferma",
+    today: "Oggi",
+    yesterday: "Ieri",
+    earlier: "Prima",
+    normal: "Normale",
+    attention: "Attenzione",
+    alert: "Avviso",
+    rest: "Riposo",
+    unknown: "Sconosciuto",
+    peopleUnit: "atleti",
+    myProfile: "Profilo",
+    justNow: "Ora",
+    minutesAgo: "{n}min fa",
+    hoursAgo: "{n}h fa",
+    daysAgo: "{n}g fa",
+    saving: "Salvataggio...",
+    saveFailed: "Salvataggio fallito:",
+    deleteConfirm: "Sei sicuro di voler eliminare?",
+    deleteFailed: "Eliminazione fallita:",
+    fillTitleDate: "Inserisci titolo e data",
+    inputRequired: "Inserisci il contenuto",
+    getReportFailed: "Report fallito:",
+    recordingStop: "Registrazione... Tocca per fermare",
+    noAIReport: "Nessun report AI",
+    noRecords: "Nessun registro",
+    back: "← Indietro",
+
+    // Scheda Home
+    todayTraining: "Allenamento di Oggi",
+    restDay: "Giorno di Riposo",
+    teamAvg: "Media Squadra",
+    alertCount: "Avvisi",
+    needAttention: "Atleti da Monitorare",
+    needFollow: "Da Monitorare",
+    athleteStatus: "Stato Atleti",
+    lastTraining: "Ultimo: {date}",
+    trainingPlan: "Piano di Allenamento",
+    trainingRecords: "Registro Allenamenti",
+
+    // Scheda Piano
+    aiAssistPlan: "Piano Assistito da AI",
+    aiAssistDesc: "Inserisci obiettivi e fase di allenamento, l'AI genererà suggerimenti professionali",
+    createPlan: "+ Crea Piano",
+    editPlan: "Modifica Piano",
+    updatePlan: "Aggiorna Piano",
+    publishPlan: "Pubblica Piano",
+    lastWeek: "‹ Settimana Precedente",
+    nextWeek: "Settimana Successiva ›",
+    addPlan: "+ Aggiungi",
+    noPlan: "☀️ Giorno di Riposo",
+    todayTag: "Oggi",
+    trainingName: "Nome Allenamento",
+    trainingNameHint: "es: Sessione Velocità e Resistenza",
+    trainingDate: "Data Allenamento",
+    trainingType: "Tipo Allenamento",
+    restDayType: "Riposo",
+    intensityZone: "Zona Intensità",
+    targetPace: "Ritmo Obiettivo",
+    targetPaceHint: "es: 4:10-4:20/km",
+    targetHR: "FC Obiettivo",
+    targetHRHint: "es: 170-180bpm",
+    estDistance: "Distanza Stimata",
+    estDistanceHint: "es: 8km",
+    estDuration: "Durata Stimata",
+    estDurationHint: "es: 50min",
+    athletes: "Atleti",
+    allTeam: "Tutta la Squadra",
+    warmup: "Riscaldamento",
+    warmupHint: "es: 10min corsa leggera",
+    notes: "Note",
+    mainTraining: "Allenamento Principale",
+    cooldown: "Defaticamento",
+    setNumber: "Serie {num}",
+    addSet: "+ Aggiungi Serie",
+    restDayLabel: "Riposo",
+    warmupLabel: "Riscaldamento",
+
+    // Scheda Registro
+    trainingSession: "Sessione",
+    todayRecords: "Oggi",
+    weekRecords: "Questa Settimana",
+    monthRecords: "Questo Mese",
+    step1: "Data Allenamento",
+    step2: "Tipo Allenamento",
+    step3: "Contenuto Sessione",
+    selectType: "Seleziona tipo",
+    voiceRecord: "Registra Sessione Vocale",
+    voiceRecordHint: "Descrivi la sessione di oggi, es: intervalli 400m 10 serie, Marco Rossi miglior tempo 58s...",
+    aiParsing: "Analisi AI...",
+    confirmSubmit: "Conferma Invio",
+    recentRecords: "Registri Recenti",
+    recordsCount: "{count} registri",
+    viewAllHistory: "Vedi Tutta la Cronologia",
+    historyRecords: "Cronologia Allenamenti",
+    noRecordsYet: "Nessun registro",
+    trainingRecord: "Registro",
+    aiParseResult: "Risultato Analisi AI",
+    sessionType: "Tipo Sessione",
+    sessionSummary: "Riepilogo",
+    athleteRecords: "Registri Atleti",
+    overallEvaluation: "Valutazione Complessiva",
+    followUpArrangement: "Prossimi Passi",
+    keyObservations: "Osservazioni Chiave",
+    recognizing: "Riconoscimento...",
+    month: "/",
+
+    // Scheda Notifiche
+    notifications: "Notifiche",
+    markAllRead: "Segna Tutto Letto",
+    unread: "Non Letto",
+    read: "Letto",
+    noTodayNotif: "Nessuna notifica oggi",
+    noYesterdayNotif: "Nessuna notifica ieri",
+    markAllReadBtn: "Segna Tutto Come Letto",
+    backToWorkbench: "Torna alla Home",
+
+    // Dettaglio atleta
+    loadingRecords: "Caricamento...",
+    assistantNotes: "Note Assistente",
+
+    // Dettaglio report
+    athleteFeedback: "Feedback Atleta",
+
+    // Piano AI
+    aiSuggestionTitle: "Piano Allenamento Assistito da AI",
+    trainingGoal: "Obiettivo Allenamento",
+    currentPhase: "Fase Attuale",
+    targetAthletes: "Atleti Destinatari",
+    selectAll: "Seleziona Tutti",
+    daysToRace: "Giorni alla Gara (opzionale)",
+    daysToRaceHint: "Opzionale",
+    specialNotes: "Note Speciali (opzionale)",
+    specialNotesHint: "es: Marco Rossi ha un infortunio al ginocchio, evitare ad alto impatto",
+    generatePlan: "🧠 Genera Piano di Allenamento",
+    generating: "Generazione...",
+    aiAnalyzing: "L'AI sta creando il piano basato su Daniels e Bompa...",
+    analyzingDetail: "Analisi dati atleti · Calcolo carico ottimale · Generazione piano settimanale",
+    weeklyPlan: "Piano Settimanale",
+    loadAnalysis: "Analisi Carico Settimanale",
+    totalDistance: "Distanza Totale:",
+    intensityBalance: "Bilanciamento Intensità:",
+    loadSuggestion: "Suggerimento Carico:",
+    precautions: "Precauzioni",
+    theoryBasis: "Basi Teoriche",
+    daniels: "Daniels",
+    bompa: "Bompa",
+    adoptPlan: "✅ Adotta come Piano Settimanale",
+    discardPlan: "🔄 Scarta e Rigenera",
+    heartRate: "FC:",
+    duration: "Durata:",
+    zone: "Zona",
+    adopting: "Adozione...",
+    planAdopted: "Piano adottato con successo!",
+    planAdoptFailed: "Adozione fallita: ",
+    confirmAdopt: "Sei sicuro di adottare questo piano?",
+
+    // Gestione vincoli
+    bindingManage: "Gestione Vincoli",
+    headCoach: "Allenatore Principale",
+    currentLogin: "(Login Attuale)",
+    bindAssistant: "Collega Assistente",
+    bindDoctor: "Collega Medico",
+    none: "Nessuno",
+    saveBinding: "Salva Vincoli",
+    bindingSaved: "Vincoli salvati",
+    bindingFailed: "Salvataggio vincoli fallito:",
+
+    // Profilo
+    accountName: "Account",
+    roleLabel: "Ruolo",
+    userId: "ID Utente",
+    logout: "Esci",
+
+    // Tipi sessione
+    sessionTypes: {
+      interval: "Intervalli",
+      tempo: "Corsa Ritmo",
+      easy: "Corsa Facile",
+      long: "Corsa Lunga",
+      recovery: "Recupero",
+      strength: "Allenamento Forza",
+      race: "Gara",
+    },
+
+    // Giorni settimana
+    weekdays: {
+      mon: "Lun",
+      tue: "Mar",
+      wed: "Mer",
+      thu: "Gio",
+      fri: "Ven",
+      sat: "Sab",
+      sun: "Dom",
+    },
+  },
+
+  // ============================================
+  // Pagina di Login
+  // ============================================
+  auth: {
+    appTitle: "Sistema di Analisi Allenamento",
+    appSubtitle: "Analisi Allenamento Sportivo",
+    loginTitle: "Accedi al tuo account",
+    registerTitle: "Crea un nuovo account",
+    username: "Nome utente",
+    usernamePlaceholder: "Inserisci il tuo nome utente",
+    password: "Password",
+    passwordPlaceholder: "Inserisci la tua password",
+    confirmPassword: "Conferma Password",
+    confirmPasswordPlaceholder: "Re-inserisci la tua password",
+    selectRole: "Seleziona Ruolo",
+    rememberMe: "Ricordami",
+    forgotPassword: "Password dimenticata?",
+    contactAdmin: "Contatta l'amministratore per reimpostare la password",
+    login: "Accedi",
+    register: "Registrati",
+    noAccount: "Non hai un account? ",
+    goRegister: "Registrati",
+    hasAccount: "Hai già un account? ",
+    goLogin: "Accedi",
+    loggingIn: "Accesso in corso...",
+    registering: "Registrazione in corso...",
+    registerSuccess: "Registrazione completata",
+    registeredAs: "Registrato come",
+    enteringSystem: "Accesso al sistema...",
+    usernameRequired: "Inserisci il nome utente",
+    passwordRequired: "Inserisci la password (min 6 caratteri)",
+    passwordMismatch: "Le password non corrispondono",
+    roleRequired: "Seleziona un ruolo",
+    loginFailed: "Accesso fallito",
+    registerFailed: "Registrazione fallita",
+  },
+
+  // ============================================
+  // Fine Assistente
+  // ============================================
+  assistant: {
+    // Navigazione
+    navWorkbench: "Home",
+    navRecords: "Registro",
+    navAlerts: "Avvisi",
+
+    // Generale
+    greetingMorning: "Buongiorno,",
+    greetingAfternoon: "Buon pomeriggio,",
+    greetingEvening: "Buonasera,",
+    role: "Assistente Allenatore",
+    restoreWeek: "Settimana di Recupero",
+    save: "Salva",
+    cancel: "Annulla",
+    loading: "Caricamento...",
+    noData: "Nessun dato",
+    unknown: "Sconosciuto",
+    peopleUnit: "atleti",
+    myProfile: "Profilo",
+    accountInfo: "Informazioni Account",
+
+    // Banco di lavoro
+    athletes: "Atleti",
+    teamAvg: "Media Squadra",
+    alertCount: "Avvisi",
+    needAttention: "Atleti da Monitorare",
+    athleteStatus: "Stato Atleti",
+    lastTraining: "Ultimo: {date}",
+    noRecords: "Nessun registro",
+    trainingRecords: "Registro Allenamenti",
+    viewAll: "Vedi Tutto",
+    viewNotifications: "Vedi Notifiche",
+
+    // Registro
+    all: "Tutti",
+    noSessionRecords: "Nessun registro sessione",
+    noFeedback: "Nessun riepilogo feedback",
+    coachViewed: "Visto dall'Allenatore",
+    trainingSession: "Sessione",
+
+    // Notifiche
+    notifications: "Notifiche",
+    markAllRead: "Segna Tutto Come Letto",
+    alert: "Avviso",
+    unread: "Non Letto",
+    read: "Letto",
+    noTodayNotif: "Nessuna notifica oggi",
+    noYesterdayNotif: "Nessuna notifica ieri",
+    markAllReadBtn: "Segna Tutto Come Letto",
+    backToWorkbench: "Torna alla Home",
+    today: "Oggi",
+    yesterday: "Ieri",
+    earlier: "Prima",
+
+    // Dettaglio atleta
+    athleteDetail: "Dettaglio Atleta",
+    backToWorkbenchBtn: "← Torna alla Home",
+    trainingRecord: "Registro Allenamento",
+    loadingRecords: "Caricamento...",
+    assistantNotes: "Note dell'Assistente",
+    addTrainingNote: "Aggiungi Nota",
+    voiceInputNote: "Input Vocale Nota",
+    submitNote: "Invia Nota",
+    submitting: "Invio in corso...",
+    noteSubmitted: "Nota inviata",
+    noteFailed: "Invio fallito: ",
+    historyNotes: "Note Storiche",
+    observation: "Osservazione",
+    evaluation: "Valutazione",
+    backToTrainingRecords: "← Torna al Registro",
+    noSessionRecords: "Nessun registro allenamento",
+    recordingStop: "Registrazione... Tocca per fermare",
+    fatigue: "Affaticamento",
+
+    // Dettaglio report
+    athleteFeedback: "Feedback Atleta",
+    noAIReport: "Nessun report AI ancora",
+    noFeedback: "Nessun feedback",
+    submitNoteBtn: "Invia Nota",
+    body: "Fisico",
+    mind: "Mentale",
+    notePlaceholder: "Tocca il microfono per registrare, o scrivi la tua valutazione...",
+    injuryRisk: "Rischio infortunio rilevato",
+
+    // Profilo
+    accountName: "Account",
+    roleLabel: "Ruolo",
+    userId: "ID Utente",
+    logout: "Esci",
+
+    // Configurazione icone notifiche
+    notifConfig: {
+      risk_alert: "Avviso",
+      injury_alert: "Avviso",
+      training_feedback: "Allenamento",
+      treatment_plan: "Trattamento",
+      training_note: "Nota",
+      conflict_alert: "Conflitto",
+      plan_approval: "Piano",
+      general: "Generale",
+    },
   },
 };
 

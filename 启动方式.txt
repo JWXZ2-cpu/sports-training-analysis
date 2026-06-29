@@ -9,3 +9,6 @@ node server/index.js
 # 3. 终端2：启动前端
 npx vite
 然后打开 http://localhost:5173 即可使用。
+
+# 一键启动项目
+npm run dev:all

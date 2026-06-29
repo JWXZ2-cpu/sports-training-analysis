@@ -1,0 +1,58 @@
+/* src/styles/variables.css */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@400;600&display=swap');
+
+:root {
+  /* ====== 色彩系统 ====== */
+  --bg: #0D0C0A;
+  --surface: #171613;
+  --card: #1F1E19;
+  --card-hover: #28261F;
+
+  --border: rgba(255,255,255,0.06);
+  --border-light: rgba(255,255,255,0.10);
+
+  --accent: #D4A44C;
+  --accent-glow: rgba(212,164,76,0.20);
+  --accent-dim: rgba(212,164,76,0.10);
+
+  --text: #F0EBE0;
+  --text-secondary: #B8B2A8;
+  --text-dim: #B8B2A8;
+
+  --green: #6BBF6E;
+  --green-dim: rgba(107,191,110,0.12);
+  --amber: #E8A849;
+  --amber-dim: rgba(232,168,73,0.12);
+  --red: #D45C5C;
+  --red-dim: rgba(212,92,92,0.12);
+  --blue: #5C9FD4;
+  --blue-dim: rgba(92,159,212,0.12);
+
+  /* ====== 圆角 ====== */
+  --radius: 16px;
+  --radius-sm: 10px;
+
+  /* ====== 字体 ====== */
+  --font-primary: 'Outfit', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-serif: 'Noto Serif SC', 'Source Serif 4', Georgia, serif;
+
+  /* ====== 间距（保持你原有的命名，更新数值） ====== */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  /* ====== 内边距 ====== */
+  --gutter: 16px;
+
+  /* ====== 字号 ====== */
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-lg: 16px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 28px;
+}

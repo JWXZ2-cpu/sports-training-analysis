@@ -1,254 +1,49 @@
-# 🏋️ 训练分析系统 | Sports Training Analysis
+# 训练分析系统 | Training Analysis System
 
-一个基于 AI 的运动训练数据分析工具，运动员通过语音或文字描述训练感受，系统自动生成结构化的训练分析报告，帮助教练快速了解运动员状态并做出决策。
+## 项目介绍
 
-🔗 **在线体验**: https://sports-training-analysis-production-81ef.up.railway.app/
+本系统是一套**AI 驱动的专业运动队训练分析平台**，为运动员、主教练、助教、队医和管理人员提供一体化的训练数据管理与智能决策支持。
 
----
+### 核心特色
 
-## ✨ 功能特性
+**三大理论深度融合** — 系统将丹尼尔斯跑步训练法（5 区训练 + VDOT 体系）、邦帕周期化训练理论（GAS 模型 + 超量补偿）和运动心理学（情绪/动机/自信/焦虑分析）三大经典理论内嵌至 AI 分析引擎，实现从微观配速到宏观周期、从身体状态到心理状态的全维度分析。
 
-| 功能 | 说明 |
-|------|------|
-| 🎤 语音输入 | 运动员通过麦克风描述训练感受，自动转写为文字 |
-| 📝 数据确认 | 确认/编辑转录内容，填写评分和标签 |
-| 🤖 AI 分析 | 调用大模型 API 生成结构化训练报告 |
-| 📊 可视化报告 | 卡片式展示情绪、疲劳度、训练难点、建议等 |
-| 🌐 多语言支持 | 支持中文、英文、意大利语 |
-| ⚠️ 风险预警 | 自动识别需要教练立即关注的异常情况 |
+**双视角智能输出** — AI 对同一份训练数据生成两份截然不同的报告：运动员端仅展示训练日记式的事实记录，教练端则提供包含强度区间评估、负荷管理、风险预警在内的专业决策支持，有效避免"AI 比教练更懂"的信任危机。
 
----
+**语音驱动的低门槛交互** — 运动员通过语音描述训练感受即可完成反馈提交，主教练和队医可通过语音录入训练课记录和治疗记录，系统自动完成语义解析和结构化归档，大幅降低数据录入成本。
 
-## 🖼️ 使用流程
+**治疗-训练冲突智能检测** — 队医提交治疗计划后，系统自动将治疗部位映射至训练区域，与次日训练计划进行交叉比对，在训练前即可发现潜在冲突并推送预警通知，实现医训协同的闭环管理。
 
-```
-步骤 1：语音输入          步骤 2：数据确认          步骤 3：分析结果
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│                 │     │ 姓名：张明远     │     │ 🟢 优秀  综合 8 │
-│    🎤 录音按钮   │ ──▶ │ 身体评分：7     │ ──▶ │ 情绪：积极       │
-│                 │     │ 心理评分：8     │     │ 疲劳：中（膝盖） │
-│  或手动输入文本  │     │ 语音转录：...    │     │ 训练日记：...    │
-│                 │     │                 │     │ 教练简报：...    │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-```
+**五角色全覆盖 + 三语国际化** — 从运动员的训练日记到管理人员的考勤看板，五个角色各司其职；中/英/意三语无缝切换，适配中外教练团队的协作场景。
 
----
+### 技术亮点
 
-## 🛠️ 技术栈
+- **自研 JsonDB 引擎**：零外部依赖的 JSON 文件数据库，支持条件查询、写锁和自动时间戳
+- **MIMO ASR 语音识别**：基于 mimo-v2.5-asr 模型的实时语音转文字
+- **FIT 文件解析**：直接导入 Garmin 等运动手表数据（配速、心率、步频、功率、GPS）
+- **AI 翻译缓存**：动态内容（报告/通知）按需翻译，localStorage 缓存 7 天，避免重复调用
+- **移动端优先设计**：430px 暗色主题，Sheet 弹窗交互，适配训练场景下的手机使用
 
-- **前端**: React 19 + Vite 6
-- **后端**: Express 5 (API 代理)
-- **AI 模型**: 小米 MIMO-v2.5
-- **语音识别**: Web Speech API (浏览器原生)
-- **部署**: Railway
+### 角色功能速览
 
----
+| 角色 | 核心能力 |
+|---|---|
+| 🏃 **运动员** | 语音反馈、训练日记、FIT 数据导入、个人趋势分析 |
+| 🧑‍🏫 **主教练** | 团队总览、AI 辅助制定计划、训练课语音录入、绑定管理 |
+| 👨‍💼 **助教** | 全队数据查看、语音/文字训练备注、报告翻译 |
+| 🩺 **队医** | 伤病/治疗管理、医疗文档上传、治疗-训练冲突检查 |
+| 📊 **管理人员** | 考勤统计、训练完成率、团队状态看板 |
 
-## 📁 项目结构
-
-```
-├── server/
-│   └── index.js              # Express 后端，API 代理
-├── src/
-│   ├── App.jsx               # 主应用（三步骤流程控制）
-│   ├── main.jsx              # 入口文件
-│   ├── components/
-│   │   ├── MicButton.jsx     # 录音按钮组件
-│   │   ├── Badge.jsx         # 标签徽章组件
-│   │   ├── ResultView.jsx    # 结果卡片组件
-│   │   └── ScoreBar.jsx      # 评分进度条组件
-│   ├── pages/
-│   │   ├── VoiceInput.jsx    # 语音输入页
-│   │   ├── DataConfirm.jsx   # 数据确认页
-│   │   └── ResultPage.jsx    # 分析结果页
-│   └── locales/
-│       ├── index.jsx         # i18n 上下文
-│       ├── zh.js             # 中文语言包
-│       ├── en.js             # 英文语言包
-│       └── it.js             # 意大利语语言包
-├── .env                      # API 配置（不提交到 Git）
-├── index.html                # HTML 入口
-├── vite.config.js            # Vite 配置
-└── package.json
-```
-
----
-
-## 🚀 快速开始
-
-### 1. 克隆项目
+### 快速开始
 
 ```bash
-git clone https://github.com/JWXZ2-cpu/sports-training-analysis.git
-cd sports-training-analysis
-```
-
-### 2. 安装依赖
-
-```bash
+# 安装依赖
 npm install
-```
 
-### 3. 配置 API Key
+# 配置环境变量
+cp .env.example .env
+# 编辑 .env 填入 LLM API 配置
 
-在项目根目录创建 `.env` 文件：
-
-```env
-API_BASE_URL=https://token-plan-cn.xiaomimimo.com/v1
-API_KEY=你的API密钥
-MODEL_NAME=mimo-v2.5
-```
-
-> 💡 API Key 从小米 AI 开放平台获取：https://xiaoai.mi.com/
-
-### 4. 启动项目
-
-**方式一：同时启动前后端（推荐）**
-
-```bash
-npm run dev:all
-```
-
-**方式二：分别启动（需要两个终端）**
-
-```bash
-# 终端 1 - 后端
-npm run dev:server
-
-# 终端 2 - 前端
+# 启动开发服务器（前端 5173 + 后端 3001）
 npm run dev
 ```
-
-### 5. 访问应用
-
-打开浏览器访问 **http://localhost:5173**
-
----
-
-## 🌐 部署到 Railway
-
-### 方式一：从 GitHub 部署
-
-1. Fork 本仓库
-2. 登录 [Railway](https://railway.app/)
-3. 点击 **New Project** → **Deploy from GitHub**
-4. 选择你 Fork 的仓库
-5. 在 **Variables** 中添加环境变量：
-   - `API_BASE_URL`
-   - `API_KEY`
-   - `MODEL_NAME`
-6. Railway 会自动构建和部署
-
-### 方式二：使用 Railway CLI
-
-```bash
-# 安装 Railway CLI
-npm install -g @railway/cli
-
-# 登录
-railway login
-
-# 初始化项目
-railway init
-
-# 添加环境变量
-railway variables set API_BASE_URL=https://token-plan-cn.xiaomimimo.com/v1
-railway variables set API_KEY=你的API密钥
-railway variables set MODEL_NAME=mimo-v2.5
-
-# 部署
-railway up
-```
-
----
-
-## 📊 AI 输出结构
-
-系统会返回以下 JSON 结构的分析报告：
-
-```json
-{
-  "overall_score": 8,
-  "status_level": "优秀",
-  "emotion": {
-    "polarity": "积极",
-    "confidence": 0.85,
-    "signals": ["自信", "满足"]
-  },
-  "fatigue": {
-    "level": "中",
-    "body_parts": ["膝盖"],
-    "evidence": "膝盖有点酸"
-  },
-  "difficulty_points": ["加速跑节奏", "最后两组掉速"],
-  "diary_text": "今天的速度耐力课整体感觉不错...",
-  "coach_summary": "运动员身体状态良好，心理积极，膝盖轻微不适...",
-  "recommendations": ["适当降低跑量", "加强膝盖热身", "节奏跑专项训练"],
-  "risk_flag": false,
-  "risk_reason": null
-}
-```
-
-| 字段 | 说明 |
-|------|------|
-| `overall_score` | 综合评分 1-10 |
-| `status_level` | 状态等级：优秀 / 正常 / 关注 / 预警 |
-| `emotion` | 情绪分析（极性、置信度、信号词） |
-| `fatigue` | 疲劳评估（程度、身体部位、原文证据） |
-| `difficulty_points` | 运动员反馈的训练难点 |
-| `diary_text` | AI 生成的训练日记 |
-| `coach_summary` | 给教练的简报 |
-| `recommendations` | 明日训练建议 |
-| `risk_flag` | 是否需要教练立即关注 |
-| `risk_reason` | 风险原因 |
-
----
-
-## 🌍 多语言支持
-
-系统支持三种语言，点击右上角按钮切换：
-
-| 语言 | 说明 |
-|------|------|
-| 🇨🇳 中文 | 默认语言 |
-| 🇬🇧 English | 英文界面 + 英文 AI 输出 |
-| 🇮🇹 Italiano | 意大利语界面 + 意大利语 AI 输出 |
-
----
-
-## 🔧 常见问题
-
-### 语音识别不工作？
-
-- 推荐使用 **Chrome** 或 **Edge** 浏览器
-- 确保使用 **HTTPS** 访问（localhost 除外）
-- 检查麦克风权限是否已授权
-- 页面底部有调试信息面板，可查看详细状态
-
-### API 返回 401 错误？
-
-- 检查 `.env` 文件中的 API Key 是否正确
-- 确认 API Key 是否已过期
-- 重启后端服务器使配置生效
-
-### 如何更换 AI 模型？
-
-修改 `.env` 文件中的配置，支持任何兼容 OpenAI API 格式的服务：
-
-```env
-API_BASE_URL=https://你的API地址/v1
-API_KEY=你的API密钥
-MODEL_NAME=模型名称
-```
-
----
-
-## 📄 开源协议
-
-MIT License
-
----
-
-## 🤝 贡献
-
-欢迎提交 Issue 和 Pull Request！

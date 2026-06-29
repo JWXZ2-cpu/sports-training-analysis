@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>主教练工作台</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0D0C0A;
+            --surface: #171613;
+            --card: #1F1E19;
+            --card-hover: #28261F;
+            --border: rgba(255,255,255,0.06);
+            --border-light: rgba(255,255,255,0.10);
+            --accent: #D4A44C;
+            --accent-glow: rgba(212,164,76,0.20);
+            --accent-dim: rgba(212,164,76,0.10);
+            --text: #F0EBE0;
+            --text-secondary: #8A8478;
+            --text-dim: #4A4640;
+            --green: #6BBF6E;
+            --green-dim: rgba(107,191,110,0.12);
+            --amber: #E8A849;
+            --amber-dim: rgba(232,168,73,0.12);
+            --red: #D45C5C;
+            --red-dim: rgba(212,92,92,0.12);
+            --blue: #5C9FD4;
+            --blue-dim: rgba(92,159,212,0.12);
+            --purple: #9B7FD4;
+            --purple-dim: rgba(155,127,212,0.12);
+            --radius: 16px;
+            --radius-sm: 10px;
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg); color: var(--text);
+            -webkit-font-smoothing: antialiased; overflow-x: hidden;
+        }
+        .grain { position: fixed; inset: 0; pointer-events: none; z-index: 9999; opacity: 0.025; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-repeat: repeat; }
+        .app { max-width: 430px; margin: 0 auto; min-height: 100vh; position: relative; overflow: hidden; background: radial-gradient(ellipse at 25% 10%, rgba(42,36,22,0.35) 0%, transparent 50%), radial-gradient(ellipse at 75% 85%, rgba(30,24,18,0.25) 0%, transparent 50%), var(--bg); }
+
+        /* Pages */
+        .page { display: none; padding: 16px 22px 110px; width: 100%; overflow-x: hidden; }
+        .page.active { display: block; animation: pageIn 0.35s ease forwards; }
+        @keyframes pageIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Header */
+        .header { display: flex; justify-content: space-between; align-items: flex-start; padding: 20px 22px 0; }
+        .greeting-small { font-size: 14px; font-weight: 400; color: var(--text-secondary); }
+        .greeting-name { font-size: 28px; font-weight: 700; color: var(--text); margin-top: 2px; letter-spacing: -0.01em; }
+        .greeting-sub { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+        .avatar-ring { width: 46px; height: 46px; border-radius: 50%; padding: 2.5px; background: linear-gradient(135deg, var(--accent) 0%, #E87040 100%); flex-shrink: 0; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.3s ease; }
+        .avatar-ring:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--accent-glow); }
+        .avatar { width: 100%; height: 100%; border-radius: 50%; background: var(--card); display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 600; color: var(--accent); }
+
+        /* Profile Sheet */
+        .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .sheet-overlay.open { opacity: 1; pointer-events: auto; }
+        .sheet { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%) translateY(100%); max-width: 430px; width: 100%; background: var(--surface); border-radius: 20px 20px 0 0; z-index: 201; transition: transform 0.35s cubic-bezier(0.32,0.72,0,1); padding: 0 24px env(safe-area-inset-bottom, 20px); max-height: 85vh; overflow-y: auto; }
+        .sheet.open { transform: translateX(-50%) translateY(0); }
+        .sheet-handle-area { display: flex; justify-content: center; padding: 12px 0 8px; cursor: grab; }
+        .sheet-handle { width: 36px; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.12); }
+        .sheet-header { display: flex; flex-direction: column; align-items: center; padding: 8px 0 24px; }
+        .sheet-avatar-ring { width: 72px; height: 72px; border-radius: 50%; padding: 3px; background: linear-gradient(135deg, var(--accent) 0%, #E87040 100%); margin-bottom: 16px; }
+        .sheet-avatar { width: 100%; height: 100%; border-radius: 50%; background: var(--card); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; color: var(--accent); }
+        .sheet-name { font-size: 20px; font-weight: 700; color: var(--text); }
+        .sheet-role { margin-top: 6px; font-size: 12px; font-weight: 500; color: var(--accent); padding: 4px 14px; border-radius: 20px; background: var(--accent-dim); }
+        .sheet-info-group { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 24px; }
+        .sheet-info-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 16px; border-bottom: 1px solid var(--border); }
+        .sheet-info-row:last-child { border-bottom: none; }
+        .sheet-info-label { font-size: 13px; color: var(--text-dim); }
+        .sheet-info-value { font-size: 14px; color: var(--text); font-weight: 500; }
+        .sheet-logout { width: 100%; padding: 15px; border: 1px solid rgba(212,92,92,0.2); border-radius: var(--radius-sm); background: var(--red-dim); color: var(--red); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; margin-bottom: 8px; }
+        .sheet-logout:hover { background: rgba(212,92,92,0.18); border-color: rgba(212,92,92,0.3); }
+
+        /* Stat Row */
+        .stat-row { display: flex; gap: 10px; margin: 28px 0 24px; animation: fadeUp 0.5s ease 0.1s both; }
+        .stat-card { flex: 1; padding: 16px 12px; border-radius: var(--radius-sm); background: var(--card); border: 1px solid var(--border); text-align: center; }
+        .stat-value { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+        .stat-value.good { color: var(--green); }
+        .stat-value.amber { color: var(--amber); }
+        .stat-value.red { color: var(--red); }
+        .stat-value.accent { color: var(--accent); }
+        .stat-sub { font-size: 13px; font-weight: 400; opacity: 0.5; }
+        .stat-label { font-size: 11px; color: var(--text-dim); margin-top: 6px; font-weight: 500; }
+
+        /* Section Title */
+        .section-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 14px; letter-spacing: -0.01em; display: flex; justify-content: space-between; align-items: center; }
+        .section-link { font-size: 13px; color: var(--accent); font-weight: 500; cursor: pointer; border: none; background: none; font-family: inherit; }
+        .section-link:hover { text-decoration: underline; }
+
+        /* Alert Card */
+        .alert-section { margin-bottom: 28px; animation: fadeUp 0.5s ease 0.15s both; }
+        .alert-card { background: linear-gradient(135deg, rgba(60,24,20,0.5) 0%, rgba(30,26,22,0.4) 100%); border: 1px solid rgba(212,92,92,0.15); border-radius: var(--radius); padding: 18px; display: flex; gap: 14px; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+        .alert-card:hover { border-color: rgba(212,92,92,0.25); }
+        .alert-icon { width: 42px; height: 42px; border-radius: 12px; background: var(--red-dim); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+        .alert-content { flex: 1; }
+        .alert-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+        .alert-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+        .alert-badge { display: inline-block; margin-top: 8px; font-size: 11px; padding: 3px 10px; border-radius: 20px; background: var(--red-dim); color: var(--red); font-weight: 500; }
+
+        /* Athlete Card */
+        .athlete-list { display: flex; flex-direction: column; gap: 10px; animation: fadeUp 0.5s ease 0.2s both; }
+        .athlete-card { display: flex; align-items: center; gap: 14px; padding: 16px 18px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; transition: all 0.2s ease; }
+        .athlete-card:hover { border-color: var(--border-light); background: var(--card-hover); }
+        .athlete-card.warn { border-left: 3px solid var(--amber); }
+        .athlete-card.danger { border-left: 3px solid var(--red); }
+        .athlete-avatar { width: 40px; height: 40px; border-radius: 12px; background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; color: var(--accent); flex-shrink: 0; }
+        .athlete-info { flex: 1; min-width: 0; }
+        .athlete-name { font-size: 15px; font-weight: 600; color: var(--text); }
+        .athlete-meta { font-size: 12px; color: var(--text-dim); margin-top: 3px; }
+        .athlete-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+        .athlete-score { font-size: 18px; font-weight: 700; }
+        .athlete-status { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
+        .athlete-status.good { background: var(--green-dim); color: var(--green); }
+        .athlete-status.warn { background: var(--amber-dim); color: var(--amber); }
+        .athlete-status.danger { background: var(--red-dim); color: var(--red); }
+
+        /* Quick Actions */
+        .quick-actions { display: flex; gap: 10px; margin-top: 28px; animation: fadeUp 0.5s ease 0.25s both; }
+        .quick-btn { flex: 1; padding: 16px 14px; border-radius: var(--radius-sm); background: var(--card); border: 1px solid var(--border); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 10px; transition: all 0.2s ease; font-family: inherit; }
+        .quick-btn:hover { border-color: var(--accent); background: var(--accent-dim); }
+        .quick-btn:active { transform: scale(0.97); }
+        .quick-btn-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .quick-btn-icon.gold { background: var(--accent-dim); }
+        .quick-btn-icon.blue { background: var(--blue-dim); }
+        .quick-btn-label { font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+
+        /* Page Title */
+        .page-title { font-size: 24px; font-weight: 700; color: var(--text); margin-bottom: 24px; letter-spacing: -0.02em; }
+        .page-title-bar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+
+        /* Plan Page */
+        .plan-week-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 12px 16px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+        .week-nav-btn { background: none; border: none; color: var(--text-secondary); font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; padding: 4px 8px; transition: color 0.2s; }
+        .week-nav-btn:hover { color: var(--accent); }
+        .week-nav-label { font-size: 14px; font-weight: 600; color: var(--text); }
+
+        .day-card { margin-bottom: 12px; padding: 16px 18px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); transition: all 0.2s; animation: fadeUp 0.3s ease both; }
+        .day-card:nth-child(1){animation-delay:0s}.day-card:nth-child(2){animation-delay:.04s}.day-card:nth-child(3){animation-delay:.08s}.day-card:nth-child(4){animation-delay:.12s}.day-card:nth-child(5){animation-delay:.16s}.day-card:nth-child(6){animation-delay:.2s}.day-card:nth-child(7){animation-delay:.24s}
+        .day-card-header { display: flex; justify-content: space-between; align-items: center; }
+        .day-card-date { font-size: 14px; font-weight: 600; color: var(--text); }
+        .day-card-day { font-size: 12px; color: var(--text-dim); margin-left: 8px; font-weight: 400; }
+        .day-today-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; background: var(--accent-dim); color: var(--accent); font-weight: 600; }
+        .day-card-body { margin-top: 10px; }
+        .day-empty { font-size: 13px; color: var(--text-dim); display: flex; align-items: center; gap: 6px; }
+        .day-plan { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+        .day-plan-item { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+        .day-plan-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+        .day-add-btn { background: none; border: 1px dashed var(--border-light); color: var(--text-dim); font-family: inherit; font-size: 12px; font-weight: 500; padding: 6px 14px; border-radius: 8px; cursor: pointer; transition: all 0.2s; margin-top: 8px; }
+        .day-add-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+        .ai-banner { margin-bottom: 24px; padding: 20px; background: linear-gradient(135deg, rgba(42,36,22,0.6) 0%, rgba(30,26,22,0.3) 100%); border: 1px solid rgba(212,164,76,0.12); border-radius: var(--radius); cursor: pointer; transition: all 0.2s; animation: fadeUp 0.4s ease 0s both; }
+        .ai-banner:hover { border-color: rgba(212,164,76,0.25); }
+        .ai-banner-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .ai-banner-icon { font-size: 20px; }
+        .ai-banner-title { font-size: 15px; font-weight: 600; color: var(--accent); }
+        .ai-banner-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+        .create-plan-btn { width: 100%; padding: 14px; border: none; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--accent) 0%, #C08830 100%); color: var(--bg); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-bottom: 20px; }
+        .create-plan-btn:hover { box-shadow: 0 0 30px var(--accent-glow); }
+        .create-plan-btn:active { transform: scale(0.98); }
+
+        /* ============================
+           重新设计的「记录」页面
+           ============================ */
+
+        /* 今日统计快览 */
+        .rec-stats {
+            display: flex; gap: 10px; margin-bottom: 24px;
+            animation: fadeUp 0.4s ease 0s both;
+        }
+        .rec-stat-pill {
+            flex: 1; padding: 14px 10px;
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); text-align: center;
+        }
+        .rec-stat-pill-num {
+            font-size: 22px; font-weight: 700; line-height: 1;
+        }
+        .rec-stat-pill-label {
+            font-size: 11px; color: var(--text-dim); margin-top: 5px; font-weight: 500;
+        }
+
+        /* 录入卡片 — 时间轴线式 */
+        .rec-timeline {
+            position: relative; padding-left: 28px; margin-bottom: 28px;
+        }
+        .rec-timeline::before {
+            content: ''; position: absolute; left: 8px; top: 12px; bottom: 12px;
+            width: 2px; background: linear-gradient(to bottom, var(--accent) 0%, var(--text-dim) 100%);
+            border-radius: 1px;
+        }
+        .rec-step {
+            position: relative; margin-bottom: 20px;
+            animation: fadeUp 0.4s ease both;
+        }
+        .rec-step:nth-child(1) { animation-delay: 0.05s; }
+        .rec-step:nth-child(2) { animation-delay: 0.1s; }
+        .rec-step:nth-child(3) { animation-delay: 0.15s; }
+        .rec-step:nth-child(4) { animation-delay: 0.2s; }
+        .rec-step-dot {
+            position: absolute; left: -28px; top: 18px; width: 18px; height: 18px;
+            border-radius: 50%; border: 3px solid var(--bg); z-index: 1;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .rec-step-dot.filled { background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
+        .rec-step-dot.empty { background: var(--text-dim); }
+        .rec-step-dot-inner {
+            width: 6px; height: 6px; border-radius: 50%;
+        }
+        .rec-step-dot.filled .rec-step-dot-inner { background: var(--bg); }
+        .rec-step-dot.empty .rec-step-dot-inner { background: transparent; }
+        .rec-step-card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 18px;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .rec-step-card:hover { border-color: var(--border-light); background: var(--card-hover); }
+        .rec-step-label {
+            font-size: 13px; font-weight: 600; color: var(--text-secondary);
+            margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+        }
+        .rec-step-num {
+            width: 20px; height: 20px; border-radius: 6px;
+            background: var(--accent-dim); color: var(--accent);
+            font-size: 11px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* 表单控件 */
+        .rec-input {
+            width: 100%; padding: 12px 14px;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); color: var(--text);
+            font-family: inherit; font-size: 14px;
+            transition: border-color 0.2s; outline: none;
+        }
+        .rec-input:focus { border-color: var(--accent); }
+        .rec-input::placeholder { color: var(--text-dim); }
+        textarea.rec-input {
+            min-height: 110px; resize: vertical; line-height: 1.6;
+            font-family: 'Noto Serif SC', serif;
+        }
+        select.rec-input {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%238A8478' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center; padding-right: 36px;
+        }
+
+        /* 语音按钮 */
+        .rec-voice-btn {
+            display: flex; align-items: center; gap: 8px;
+            padding: 11px 16px; width: 100%;
+            border: 1px dashed var(--border-light); border-radius: var(--radius-sm);
+            background: none; color: var(--text-secondary);
+            font-family: inherit; font-size: 13px; font-weight: 500;
+            cursor: pointer; transition: all 0.2s; justify-content: center;
+        }
+        .rec-voice-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+        .rec-voice-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+        .rec-voice-btn.recording {
+            border-color: var(--red); color: var(--red); background: var(--red-dim);
+            border-style: solid; animation: recordPulse 1.5s ease infinite;
+        }
+        @keyframes recordPulse { 0%,100% { box-shadow: 0 0 10px rgba(212,92,92,0.1); } 50% { box-shadow: 0 0 25px rgba(212,92,92,0.2); } }
+
+        /* 提交按钮 */
+        .rec-submit {
+            width: 100%; padding: 15px;
+            border: none; border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--accent) 0%, #C08830 100%);
+            color: var(--bg); font-family: inherit; font-size: 14px;
+            font-weight: 600; cursor: pointer; transition: all 0.2s;
+            animation: fadeUp 0.4s ease 0.25s both;
+        }
+        .rec-submit:hover { box-shadow: 0 0 30px var(--accent-glow); }
+        .rec-submit:active { transform: scale(0.98); }
+
+        /* 最近记录 */
+        .rec-history-title {
+            font-size: 15px; font-weight: 600; color: var(--text);
+            margin: 28px 0 14px; display: flex; align-items: center; gap: 8px;
+            animation: fadeUp 0.4s ease 0.3s both;
+        }
+        .rec-history-count {
+            font-size: 11px; padding: 2px 8px; border-radius: 10px;
+            background: var(--accent-dim); color: var(--accent); font-weight: 600;
+        }
+        .rec-history-card {
+            display: flex; gap: 0;
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: var(--radius); overflow: hidden;
+            margin-bottom: 12px; cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            animation: fadeUp 0.4s ease both;
+        }
+        .rec-history-card:nth-of-type(1) { animation-delay: 0.35s; }
+        .rec-history-card:nth-of-type(2) { animation-delay: 0.4s; }
+        .rec-history-card:nth-of-type(3) { animation-delay: 0.45s; }
+        .rec-history-card:hover { border-color: var(--border-light); background: var(--card-hover); }
+        .rec-history-side {
+            width: 52px; flex-shrink: 0; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 2px;
+            background: var(--surface); border-right: 1px solid var(--border);
+        }
+        .rec-history-month { font-size: 10px; color: var(--text-dim); font-weight: 500; }
+        .rec-history-day { font-size: 20px; font-weight: 700; color: var(--text); }
+        .rec-history-body { flex: 1; padding: 14px 16px; min-width: 0; }
+        .rec-history-type {
+            font-size: 12px; font-weight: 600; color: var(--accent);
+            margin-bottom: 5px; display: flex; align-items: center; gap: 6px;
+        }
+        .rec-history-type-dot {
+            width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
+        }
+        .rec-history-text {
+            font-family: 'Noto Serif SC', serif; font-size: 13px;
+            color: var(--text-secondary); line-height: 1.6;
+            display: -webkit-box; -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .rec-view-all {
+            display: flex; align-items: center; justify-content: center;
+            gap: 6px; padding: 12px; width: 100%;
+            background: none; border: 1px dashed var(--border-light);
+            border-radius: var(--radius-sm); color: var(--text-dim);
+            font-family: inherit; font-size: 13px; font-weight: 500;
+            cursor: pointer; transition: all 0.2s;
+            animation: fadeUp 0.4s ease 0.5s both;
+        }
+        .rec-view-all:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+        /* ============================
+           重新设计的「通知」页面
+           ============================ */
+
+        /* 通知统计栏 */
+        .notif-summary {
+            display: flex; gap: 10px; margin-bottom: 24px;
+            animation: fadeUp 0.4s ease 0s both;
+        }
+        .notif-summary-item {
+            flex: 1; padding: 14px 10px;
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); text-align: center;
+            position: relative; overflow: hidden;
+        }
+        .notif-summary-item::before {
+            content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+            height: 3px;
+        }
+        .notif-summary-item.red::before { background: var(--red); }
+        .notif-summary-item.amber::before { background: var(--accent); }
+        .notif-summary-item.blue::before { background: var(--blue); }
+        .notif-summary-num {
+            font-size: 24px; font-weight: 700; line-height: 1;
+        }
+        .notif-summary-label {
+            font-size: 11px; color: var(--text-dim); margin-top: 5px; font-weight: 500;
+        }
+
+        /* 通知时间分组 */
+        .notif-group-label {
+            font-size: 12px; font-weight: 600; color: var(--text-dim);
+            letter-spacing: 0.04em; text-transform: uppercase;
+            margin: 24px 0 12px; padding-left: 4px;
+            animation: fadeUp 0.3s ease both;
+        }
+        .notif-group-label:first-of-type { margin-top: 0; }
+
+        /* 通知卡片 — 全新布局 */
+        .notif-card {
+            display: flex; gap: 14px;
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 18px;
+            margin-bottom: 12px; cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            animation: fadeUp 0.4s ease both;
+            position: relative;
+        }
+        .notif-card:nth-child(1) { animation-delay: 0.05s; }
+        .notif-card:nth-child(2) { animation-delay: 0.1s; }
+        .notif-card:nth-child(3) { animation-delay: 0.15s; }
+        .notif-card:hover { border-color: var(--border-light); background: var(--card-hover); }
+        .notif-card.unread {
+            border-left: 3px solid var(--accent);
+        }
+        .notif-card.unread::after {
+            content: ''; position: absolute; top: 18px; right: 18px;
+            width: 8px; height: 8px; border-radius: 50%; background: var(--accent);
+        }
+        .notif-card-icon {
+            width: 44px; height: 44px; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; flex-shrink: 0;
+        }
+        .notif-card-icon.red { background: var(--red-dim); }
+        .notif-card-icon.green { background: var(--green-dim); }
+        .notif-card-icon.blue { background: var(--blue-dim); }
+        .notif-card-icon.amber { background: var(--accent-dim); }
+        .notif-card-body { flex: 1; min-width: 0; }
+        .notif-card-title {
+            font-size: 14px; font-weight: 600; color: var(--text);
+            margin-bottom: 5px; padding-right: 16px;
+        }
+        .notif-card-desc {
+            font-size: 13px; color: var(--text-secondary); line-height: 1.55;
+        }
+        .notif-card-time {
+            font-size: 11px; color: var(--text-dim); margin-top: 10px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .notif-card-time-dot {
+            width: 4px; height: 4px; border-radius: 50%; background: var(--text-dim);
+        }
+
+        /* 快捷操作按钮 */
+        .notif-actions {
+            display: flex; gap: 10px; margin-top: 20px;
+            animation: fadeUp 0.4s ease 0.2s both;
+        }
+        .notif-action-btn {
+            flex: 1; padding: 13px 14px;
+            border: 1px solid var(--border); border-radius: var(--radius-sm);
+            background: var(--card); color: var(--text-secondary);
+            font-family: inherit; font-size: 13px; font-weight: 500;
+            cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .notif-action-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+        .notif-action-btn svg { width: 15px; height: 15px; }
+
+        /* Notify Page (old, kept for sheet) */
+        .notify-list { display: flex; flex-direction: column; gap: 12px; }
+        .notify-item { display: flex; gap: 14px; padding: 18px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); transition: all 0.2s; }
+        .notify-item:hover { border-color: var(--border-light); background: var(--card-hover); }
+        .notify-item.unread { border-left: 3px solid var(--accent); }
+        .notify-icon-wrap { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+        .notify-icon-wrap.red { background: var(--red-dim); }
+        .notify-icon-wrap.green { background: var(--green-dim); }
+        .notify-icon-wrap.blue { background: var(--blue-dim); }
+        .notify-icon-wrap.amber { background: var(--accent-dim); }
+        .notify-content { flex: 1; min-width: 0; }
+        .notify-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+        .notify-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+        .notify-time { font-size: 11px; color: var(--text-dim); margin-top: 8px; display: block; }
+        .notify-mark-all { font-size: 13px; color: var(--accent); font-weight: 500; cursor: pointer; border: none; background: none; font-family: inherit; }
+
+        /* Session Record Page (old, kept for sheet) */
+        .record-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+        .record-label { font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px; }
+        .record-input { width: 100%; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-family: inherit; font-size: 14px; transition: border-color 0.2s; outline: none; }
+        .record-input:focus { border-color: var(--accent); }
+        .record-input::placeholder { color: var(--text-dim); }
+        textarea.record-input { min-height: 120px; resize: vertical; line-height: 1.6; }
+        select.record-input { appearance: none; background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%238A8478' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+        .voice-input-area { position: relative; }
+        .voice-start-btn { display: flex; align-items: center; gap: 8px; padding: 12px 18px; border: 1px dashed var(--border-light); border-radius: var(--radius-sm); background: none; color: var(--text-secondary); font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; width: 100%; justify-content: center; }
+        .voice-start-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+        .voice-start-btn svg { width: 18px; height: 18px; }
+        .voice-start-btn.recording { border-color: var(--red); color: var(--red); background: var(--red-dim); animation: recordPulse 1.5s ease infinite; border-style: solid; }
+        .submit-btn { width: 100%; padding: 14px; border: none; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--accent) 0%, #C08830 100%); color: var(--bg); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .submit-btn:hover { box-shadow: 0 0 30px var(--accent-glow); }
+        .submit-btn:active { transform: scale(0.98); }
+        .history-link { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 14px; font-size: 13px; color: var(--text-dim); cursor: pointer; border: none; background: none; font-family: inherit; transition: color 0.2s; width: 100%; }
+        .history-link:hover { color: var(--accent); }
+
+        /* Session History */
+        .session-item { display: flex; gap: 14px; padding: 16px 18px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 10px; }
+        .session-date-badge { padding: 6px 10px; background: var(--surface); border-radius: 8px; text-align: center; flex-shrink: 0; min-width: 52px; }
+        .session-date-month { font-size: 10px; color: var(--text-dim); font-weight: 500; }
+        .session-date-day { font-size: 18px; font-weight: 700; color: var(--text); }
+        .session-info { flex: 1; min-width: 0; }
+        .session-type { font-size: 12px; color: var(--accent); font-weight: 500; margin-bottom: 4px; }
+        .session-text { font-family: 'Noto Serif SC', serif; font-size: 13px; color: var(--text-secondary); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+        /* Athlete Detail Sheet */
+        .detail-sheet { max-height: 90vh; }
+        .detail-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+        .detail-avatar { width: 56px; height: 56px; border-radius: 16px; background: var(--card); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; color: var(--accent); }
+        .detail-name { font-size: 20px; font-weight: 700; color: var(--text); }
+        .detail-status { display: inline-block; margin-top: 6px; font-size: 12px; padding: 3px 12px; border-radius: 20px; font-weight: 500; }
+        .detail-records { display: flex; flex-direction: column; gap: 10px; }
+        .detail-record { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+        .detail-record-score { font-size: 20px; font-weight: 700; width: 36px; text-align: center; flex-shrink: 0; }
+        .detail-record-info { flex: 1; }
+        .detail-record-date { font-size: 12px; color: var(--text-dim); }
+        .detail-record-status { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 500; margin-left: 8px; }
+        .detail-record-tag { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+
+        /* AI Plan Sheet */
+        .ai-field { margin-bottom: 20px; }
+        .ai-field label { display: block; font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px; }
+        .ai-field input, .ai-field select, .ai-field textarea { width: 100%; padding: 12px 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-family: inherit; font-size: 14px; outline: none; transition: border-color 0.2s; }
+        .ai-field input:focus, .ai-field select:focus, .ai-field textarea:focus { border-color: var(--accent); }
+        .ai-field select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%238A8478' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+        .ai-generate-btn { width: 100%; padding: 15px; border: none; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--accent) 0%, #C08830 100%); color: var(--bg); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .ai-generate-btn:hover { box-shadow: 0 0 30px var(--accent-glow); }
+
+        /* Bottom Nav */
+        .nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); max-width: 430px; width: 100%; display: flex; justify-content: space-around; padding: 8px 8px; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: rgba(13,12,10,0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--border); z-index: 100; }
+        .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 0; border: none; background: none; cursor: pointer; color: var(--text-dim); font-family: inherit; font-size: 11px; font-weight: 500; transition: color 0.2s; position: relative; }
+        .nav-btn svg { width: 22px; height: 22px; stroke-width: 1.5; transition: transform 0.2s; }
+        .nav-btn.active { color: var(--accent); }
+        .nav-btn.active svg { transform: scale(1.08); }
+        .nav-btn .badge { position: absolute; top: 4px; right: 50%; transform: translateX(14px); min-width: 16px; height: 16px; padding: 0 5px; border-radius: 9px; background: var(--red); color: white; font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+        .hidden { display: none !important; }
+
+        @media (min-width: 431px) {
+            body { display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 20px 0; background: radial-gradient(ellipse at 30% 30%, rgba(30,26,18,0.5) 0%, transparent 60%), #080706; }
+            .app { border-radius: 24px; border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 0 0 1px rgba(0,0,0,0.3), 0 20px 80px rgba(0,0,0,0.5); overflow: hidden; min-height: min(900px, calc(100vh - 40px)); }
+            .nav { border-radius: 0 0 24px 24px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="grain"></div>
+<div class="app">
+    <!-- Header -->
+    <div class="header" id="headerArea">
+        <div>
+            <div class="greeting-small" id="greetingText">晚上好，</div>
+            <div class="greeting-name">王教练</div>
+            <div class="greeting-sub">主教练 · 恢复周</div>
+        </div>
+        <div class="avatar-ring" onclick="openSheet('profileSheet')" title="我的">
+            <div class="avatar">王</div>
+        </div>
+    </div>
+
+    <!-- ===== Page: 工作台 ===== -->
+    <section class="page active" id="page-home">
+        <div class="stat-row">
+            <div class="stat-card">
+                <div class="stat-value amber">0<span class="stat-sub"> / 2</span></div>
+                <div class="stat-label">今日训练</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value accent">6.5</div>
+                <div class="stat-label">团队均分</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value red">1</div>
+                <div class="stat-label">预警人数</div>
+            </div>
+        </div>
+        <div class="alert-section">
+            <div class="section-title">需要关注的运动员</div>
+            <div class="alert-card" onclick="openSheet('athleteSheet')">
+                <div class="alert-icon">⚠️</div>
+                <div class="alert-content">
+                    <div class="alert-title">王队员</div>
+                    <div class="alert-desc">膝盖和跟腱疼痛，可能因负荷过高导致受伤风险</div>
+                    <span class="alert-badge">预警</span>
+                </div>
+            </div>
+        </div>
+        <div style="margin-bottom: 28px;">
+            <div class="section-title">运动员状态 <button class="section-link" onclick="switchPage('page-plan')">查看全部</button></div>
+            <div class="athlete-list">
+                <div class="athlete-card warn" onclick="openSheet('athleteSheet')">
+                    <div class="athlete-avatar">王</div>
+                    <div class="athlete-info"><div class="athlete-name">王队员</div><div class="athlete-meta">最近训练: 2026-06-14</div></div>
+                    <div class="athlete-right"><div class="athlete-score" style="color:var(--amber)">6.5</div><span class="athlete-status warn">关注</span></div>
+                </div>
+                <div class="athlete-card" onclick="openSheet('athleteSheet')">
+                    <div class="athlete-avatar">陈</div>
+                    <div class="athlete-info"><div class="athlete-name">陈队员</div><div class="athlete-meta">最近训练: 2026-06-14</div></div>
+                    <div class="athlete-right"><div class="athlete-score" style="color:var(--green)">—</div><span class="athlete-status good">良好</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="quick-actions">
+            <button class="quick-btn" onclick="switchPage('page-plan')"><div class="quick-btn-icon gold">📋</div><span class="quick-btn-label">训练计划</span></button>
+            <button class="quick-btn" onclick="switchPage('page-session')"><div class="quick-btn-icon blue">🎙️</div><span class="quick-btn-label">训练记录</span></button>
+        </div>
+    </section>
+
+    <!-- ===== Page: 计划 ===== -->
+    <section class="page" id="page-plan">
+        <div class="page-title-bar"><h1 class="page-title" style="margin-bottom:0;">训练计划</h1></div>
+        <div class="ai-banner" onclick="openSheet('aiSheet')">
+            <div class="ai-banner-top"><span class="ai-banner-icon">🤖</span><span class="ai-banner-title">AI 辅助制定计划</span></div>
+            <div class="ai-banner-desc">输入训练目标和阶段，AI 将为你生成专业的训练计划建议</div>
+        </div>
+        <button class="create-plan-btn" onclick="openSheet('aiSheet')">+ 创建计划</button>
+        <div class="plan-week-nav">
+            <button class="week-nav-btn">‹ 上一周</button>
+            <span class="week-nav-label">06-15 — 06-21</span>
+            <button class="week-nav-btn">下一周 ›</button>
+        </div>
+        <div class="day-card"><div class="day-card-header"><div><span class="day-card-date">周一</span><span class="day-card-day">06-15</span></div><span class="day-today-badge">今天</span></div><div class="day-card-body"><div class="day-empty">休息日</div></div></div>
+        <div class="day-card"><div class="day-card-header"><div><span class="day-card-date">周二</span><span class="day-card-day">06-16</span></div></div><div class="day-card-body"><div class="day-plan"><div class="day-plan-item"><span class="day-plan-dot"></span>轻松跑 8km E区</div><div class="day-plan-item"><span class="day-plan-dot"></span>核心力量训练 30min</div></div></div></div>
+        <div class="day-card"><div class="day-card-header"><div><span class="day-card-date">周三</span><span class="day-card-day">06-17</span></div></div><div class="day-card-body"><div class="day-plan"><div class="day-plan-item"><span class="day-plan-dot"></span>间歇训练 400m×8 I区</div></div></div></div>
+        <div class="day-card"><div class="day-card-header"><div><span class="day-card-date">周四</span><span class="day-card-day">06-18</span></div></div><div class="day-card-body"><div class="day-empty">休息日</div></div></div>
+        <div class="day-card"><div class="day-card-header"><div><span class="day-card-date">周五</span><span class="day-card-day">06-19</span></div></div><div class="day-card-body"><div class="day-plan"><div class="day-plan-item"><span class="day-plan-dot"></span>节奏跑 10km T区</div><div class="day-plan-item"><span class="day-plan-dot"></span>力量训练 45min</div></div></div></div>
+        <div class="day-card"><div class="day-card-header"><div><span class="day-card-date">周六</span><span class="day-card-day">06-20</span></div></div><div class="day-card-body"><div class="day-plan"><div class="day-plan-item"><span class="day-plan-dot"></span>长距离跑 16km E-M区</div></div></div></div>
+        <div class="day-card"><div class="day-card-header"><div><span class="day-card-date">周日</span><span class="day-card-day">06-21</span></div></div><div class="day-card-body"><div class="day-empty">休息日</div></div></div>
+    </section>
+
+    <!-- ===== Page: 记录（全新设计） ===== -->
+    <section class="page" id="page-session">
+        <h1 class="page-title">训练课记录</h1>
+
+        <!-- 今日统计 -->
+        <div class="rec-stats">
+            <div class="rec-stat-pill">
+                <div class="rec-stat-pill-num" style="color: var(--accent)">0</div>
+                <div class="rec-stat-pill-label">今日记录</div>
+            </div>
+            <div class="rec-stat-pill">
+                <div class="rec-stat-pill-num" style="color: var(--green)">3</div>
+                <div class="rec-stat-pill-label">本周记录</div>
+            </div>
+            <div class="rec-stat-pill">
+                <div class="rec-stat-pill-num" style="color: var(--blue)">12</div>
+                <div class="rec-stat-pill-label">本月记录</div>
+            </div>
+        </div>
+
+        <!-- 时间轴式录入流程 -->
+        <div class="rec-timeline">
+            <div class="rec-step">
+                <div class="rec-step-dot filled"><div class="rec-step-dot-inner"></div></div>
+                <div class="rec-step-card">
+                    <div class="rec-step-label"><span class="rec-step-num">1</span>训练日期</div>
+                    <input type="date" class="rec-input" value="2026-06-15">
+                </div>
+            </div>
+
+            <div class="rec-step">
+                <div class="rec-step-dot empty"><div class="rec-step-dot-inner"></div></div>
+                <div class="rec-step-card">
+                    <div class="rec-step-label"><span class="rec-step-num">2</span>训练类型</div>
+                    <select class="rec-input">
+                        <option value="">选择训练类型</option>
+                        <option>间歇训练</option>
+                        <option>节奏跑</option>
+                        <option>长距离跑</option>
+                        <option>轻松跑</option>
+                        <option>力量训练</option>
+                        <option>恢复训练</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="rec-step">
+                <div class="rec-step-dot empty"><div class="rec-step-dot-inner"></div></div>
+                <div class="rec-step-card">
+                    <div class="rec-step-label"><span class="rec-step-num">3</span>训练课内容</div>
+                    <div style="margin-bottom: 12px;">
+                        <button class="rec-voice-btn" id="coachVoiceBtn" onclick="toggleCoachVoice()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="1" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/>
+                                <line x1="12" y1="17" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/>
+                            </svg>
+                            <span id="coachVoiceLabel">语音录入训练课</span>
+                        </button>
+                    </div>
+                    <textarea class="rec-input" placeholder="口述今天的训练课情况，如：今天400米间歇10组，张明远最好58秒..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <button class="rec-submit">确认提交</button>
+
+        <!-- 最近记录 -->
+        <div class="rec-history-title">
+            最近记录 <span class="rec-history-count">3 条</span>
+        </div>
+
+        <div class="rec-history-card" onclick="openSheet('historySheet')">
+            <div class="rec-history-side"><div class="rec-history-month">6月</div><div class="rec-history-day">14</div></div>
+            <div class="rec-history-body">
+                <div class="rec-history-type"><span class="rec-history-type-dot"></span>间歇训练</div>
+                <div class="rec-history-text">今天400米间歇10组，王队员最好58秒，整体表现稳定。陈队员后半段掉速明显，需要注意恢复。</div>
+            </div>
+        </div>
+        <div class="rec-history-card" onclick="openSheet('historySheet')">
+            <div class="rec-history-side"><div class="rec-history-month">6月</div><div class="rec-history-day">12</div></div>
+            <div class="rec-history-body">
+                <div class="rec-history-type"><span class="rec-history-type-dot"></span>节奏跑</div>
+                <div class="rec-history-text">10公里节奏跑，全员完成。配速比上周快了5秒/公里，王队员状态回升。</div>
+            </div>
+        </div>
+        <div class="rec-history-card" onclick="openSheet('historySheet')">
+            <div class="rec-history-side"><div class="rec-history-month">6月</div><div class="rec-history-day">10</div></div>
+            <div class="rec-history-body">
+                <div class="rec-history-type"><span class="rec-history-type-dot"></span>力量训练</div>
+                <div class="rec-history-text">下肢力量训练，深蹲、硬拉为主。王队员反映深蹲姿势不适，已调整动作幅度。</div>
+            </div>
+        </div>
+
+        <button class="rec-view-all" onclick="openSheet('historySheet')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            查看全部历史记录
+        </button>
+    </section>
+
+    <!-- ===== Page: 通知（全新设计） ===== -->
+    <section class="page" id="page-notify">
+        <div class="page-title-bar">
+            <h1 class="page-title" style="margin-bottom:0;">通知</h1>
+            <button class="notify-mark-all" id="markAllBtn" onclick="markAllRead()" style="font-size:13px;color:var(--accent);font-weight:500;cursor:pointer;border:none;background:none;font-family:inherit;">全部已读</button>
+        </div>
+
+        <!-- 通知统计 -->
+        <div class="notif-summary">
+            <div class="notif-summary-item red">
+                <div class="notif-summary-num" style="color: var(--red)">1</div>
+                <div class="notif-summary-label">预警</div>
+            </div>
+            <div class="notif-summary-item amber">
+                <div class="notif-summary-num" style="color: var(--accent)">2</div>
+                <div class="notif-summary-label">未读</div>
+            </div>
+            <div class="notif-summary-item blue">
+                <div class="notif-summary-num" style="color: var(--blue)">1</div>
+                <div class="notif-summary-label">已读</div>
+            </div>
+        </div>
+
+        <!-- 时间分组：今天 -->
+        <div class="notif-group-label">今天</div>
+
+        <div class="notif-card unread">
+            <div class="notif-card-icon green">💊</div>
+            <div class="notif-card-body">
+                <div class="notif-card-title">治疗计划</div>
+                <div class="notif-card-desc">那医生提交了今晚治疗计划</div>
+                <div class="notif-card-time"><span class="notif-card-time-dot"></span>1小时前</div>
+            </div>
+        </div>
+
+        <div class="notif-card unread">
+            <div class="notif-card-icon red">⚠️</div>
+            <div class="notif-card-body">
+                <div class="notif-card-title">运动员预警</div>
+                <div class="notif-card-desc">王队员膝盖和跟腱疼痛，系统检测到可能因负荷过高导致受伤风险</div>
+                <div class="notif-card-time"><span class="notif-card-time-dot"></span>3小时前</div>
+            </div>
+        </div>
+
+        <!-- 时间分组：昨天 -->
+        <div class="notif-group-label">昨天</div>
+
+        <div class="notif-card">
+            <div class="notif-card-icon blue">📊</div>
+            <div class="notif-card-body">
+                <div class="notif-card-title">训练反馈提交</div>
+                <div class="notif-card-desc">王队员和陈队员已提交今日训练反馈</div>
+                <div class="notif-card-time"><span class="notif-card-time-dot"></span>昨天</div>
+            </div>
+        </div>
+
+        <!-- 快捷操作 -->
+        <div class="notif-actions">
+            <button class="notif-action-btn" onclick="markAllRead()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                全部标记已读
+            </button>
+            <button class="notif-action-btn" onclick="switchPage('page-home')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                返回工作台
+            </button>
+        </div>
+    </section>
+
+    <!-- ====== Bottom Nav ====== -->
+    <nav class="nav">
+        <button class="nav-btn active" data-page="page-home" onclick="switchPage('page-home')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            <span>工作台</span>
+        </button>
+        <button class="nav-btn" data-page="page-plan" onclick="switchPage('page-plan')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>计划</span>
+        </button>
+        <button class="nav-btn" data-page="page-session" onclick="switchPage('page-session')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <span>记录</span>
+        </button>
+        <button class="nav-btn" data-page="page-notify" onclick="switchPage('page-notify')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span>通知</span>
+            <span class="badge">2</span>
+        </button>
+    </nav>
+
+    <!-- ====== Overlays ====== -->
+
+    <!-- Profile Sheet -->
+    <div class="sheet-overlay" id="profileOverlay" onclick="closeSheet('profileSheet')"></div>
+    <div class="sheet" id="profileSheet">
+        <div class="sheet-handle-area" onclick="closeSheet('profileSheet')"><div class="sheet-handle"></div></div>
+        <div class="sheet-header">
+            <div class="sheet-avatar-ring"><div class="sheet-avatar">王</div></div>
+            <div class="sheet-name">王教练</div>
+            <span class="sheet-role">主教练</span>
+        </div>
+        <div class="sheet-info-group">
+            <div class="sheet-info-row"><span class="sheet-info-label">账号名</span><span class="sheet-info-value">王教练</span></div>
+            <div class="sheet-info-row"><span class="sheet-info-label">角色</span><span class="sheet-info-value">主教练</span></div>
+            <div class="sheet-info-row"><span class="sheet-info-label">用户 ID</span><span class="sheet-info-value">1</span></div>
+        </div>
+        <button class="sheet-logout" onclick="closeSheet('profileSheet'); setTimeout(()=>alert('已退出登录'),300)">退出登录</button>
+    </div>
+
+    <!-- Athlete Detail Sheet -->
+    <div class="sheet-overlay" id="athleteOverlay" onclick="closeSheet('athleteSheet')"></div>
+    <div class="sheet detail-sheet" id="athleteSheet">
+        <div class="sheet-handle-area" onclick="closeSheet('athleteSheet')"><div class="sheet-handle"></div></div>
+        <div class="detail-header">
+            <div class="detail-avatar">王</div>
+            <div><div class="detail-name">王队员</div><span class="detail-status" style="background:var(--amber-dim);color:var(--amber);">关注</span></div>
+        </div>
+        <div class="section-title" style="margin-top:0;">训练记录</div>
+        <div class="detail-records">
+            <div class="detail-record"><div class="detail-record-score" style="color:var(--amber)">6.5</div><div class="detail-record-info"><div class="detail-record-date">2026-06-14<span class="detail-record-status" style="background:var(--amber-dim);color:var(--amber)">关注</span></div></div></div>
+            <div class="detail-record"><div class="detail-record-score" style="color:var(--red)">5.5</div><div class="detail-record-info"><div class="detail-record-date">2026-06-10<span class="detail-record-status" style="background:var(--red-dim);color:var(--red)">预警</span></div></div></div>
+            <div class="detail-record"><div class="detail-record-score" style="color:var(--amber)">5.5</div><div class="detail-record-info"><div class="detail-record-date">2026-06-10<span class="detail-record-status" style="background:var(--amber-dim);color:var(--amber)">关注</span></div></div></div>
+            <div class="detail-record"><div class="detail-record-score" style="color:var(--red)">5.0</div><div class="detail-record-info"><div class="detail-record-date">2026-06-10<span class="detail-record-status" style="background:var(--red-dim);color:var(--red)">预警</span></div><div class="detail-record-tag">疲劳</div></div></div>
+            <div class="detail-record"><div class="detail-record-score" style="color:var(--amber)">6.0</div><div class="detail-record-info"><div class="detail-record-date">2026-06-10<span class="detail-record-status" style="background:var(--amber-dim);color:var(--amber)">关注</span></div></div></div>
+        </div>
+    </div>
+
+    <!-- AI Plan Sheet -->
+    <div class="sheet-overlay" id="aiOverlay" onclick="closeSheet('aiSheet')"></div>
+    <div class="sheet" id="aiSheet">
+        <div class="sheet-handle-area" onclick="closeSheet('aiSheet')"><div class="sheet-handle"></div></div>
+        <h2 style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:8px;">AI 辅助制定训练计划</h2>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:24px;">填写以下信息，AI 将为你生成训练计划建议</p>
+        <div class="ai-field"><label>训练目标</label><input type="text" placeholder="如：提升5000米成绩"></div>
+        <div class="ai-field"><label>当前训练阶段</label><select><option value="">选择阶段</option><option>基础期</option><option>发展期</option><option>竞赛期</option><option>恢复期</option></select></div>
+        <div class="ai-field"><label>目标运动员</label><select><option value="">全部运动员</option><option>王队员</option><option>陈队员</option></select></div>
+        <div class="ai-field"><label>距离目标赛事（天）</label><input type="number" placeholder="如：30"></div>
+        <div class="ai-field"><label>特殊注意事项（选填）</label><textarea rows="3" placeholder="如：王队员膝盖不适，需降低下肢负荷"></textarea></div>
+        <button class="ai-generate-btn" onclick="closeSheet('aiSheet'); setTimeout(()=>alert('AI 正在生成训练计划...'),300)">生成训练计划建议</button>
+    </div>
+
+    <!-- Session History Sheet -->
+    <div class="sheet-overlay" id="historyOverlay" onclick="closeSheet('historySheet')"></div>
+    <div class="sheet" id="historySheet">
+        <div class="sheet-handle-area" onclick="closeSheet('historySheet')"><div class="sheet-handle"></div></div>
+        <h2 style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:20px;">历史训练课</h2>
+        <div class="session-item"><div class="session-date-badge"><div class="session-date-month">6月</div><div class="session-date-day">14</div></div><div class="session-info"><div class="session-type">间歇训练</div><div class="session-text">今天400米间歇10组，王队员最好58秒，整体表现稳定。陈队员后半段掉速明显，需要注意恢复。</div></div></div>
+        <div class="session-item"><div class="session-date-badge"><div class="session-date-month">6月</div><div class="session-date-day">12</div></div><div class="session-info"><div class="session-type">节奏跑</div><div class="session-text">10公里节奏跑，全员完成。配速比上周快了5秒/公里，王队员状态回升。</div></div></div>
+        <div class="session-item"><div class="session-date-badge"><div class="session-date-month">6月</div><div class="session-date-day">10</div></div><div class="session-info"><div class="session-type">力量训练</div><div class="session-text">下肢力量训练，深蹲、硬拉为主。王队员反映深蹲姿势不适，已调整动作幅度。</div></div></div>
+    </div>
+</div>
+
+<script>
+    (function(){const h=new Date().getHours();let g='你好';if(h<6)g='夜深了，';else if(h<11)g='早上好，';else if(h<14)g='中午好，';else if(h<18)g='下午好，';else g='晚上好，';document.getElementById('greetingText').textContent=g;})();
+
+    function switchPage(pageId){
+        document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+        document.querySelectorAll('.nav-btn').forEach(btn=>{btn.classList.toggle('active',btn.dataset.page===pageId);});
+        document.getElementById('headerArea').style.display=(pageId==='page-home')?'flex':'none';
+        window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    function openSheet(id){
+        const sheet=document.getElementById(id);
+        const overlay=document.getElementById(id.replace('Sheet','Overlay'));
+        sheet.classList.add('open');overlay.classList.add('open');
+        document.body.style.overflow='hidden';
+    }
+    function closeSheet(id){
+        const sheet=document.getElementById(id);
+        const overlay=document.getElementById(id.replace('Sheet','Overlay'));
+        sheet.classList.remove('open');overlay.classList.remove('open');
+        document.body.style.overflow='';
+    }
+
+    let coachRecording=false;
+    function toggleCoachVoice(){
+        const btn=document.getElementById('coachVoiceBtn');
+        const label=document.getElementById('coachVoiceLabel');
+        if(!coachRecording){
+            coachRecording=true;btn.classList.add('recording');
+            label.textContent='正在录音… 点击结束';
+            setTimeout(()=>{coachRecording=false;btn.classList.remove('recording');label.textContent='识别完成，内容已填入';setTimeout(()=>{label.textContent='语音录入训练课';},2000);},3000);
+        }
+    }
+
+    function markAllRead(){
+        document.querySelectorAll('.notif-card.unread').forEach(el=>el.classList.remove('unread'));
+        document.getElementById('markAllBtn').style.display='none';
+        document.querySelectorAll('.nav-btn .badge').forEach(b=>b.style.display='none');
+    }
+</script>
+
+</body>
+</html>

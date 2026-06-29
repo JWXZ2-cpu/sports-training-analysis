@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>训练分析系统 - 登录</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0D0C0A;
+            --surface: #171613;
+            --card: #1F1E19;
+            --card-hover: #28261F;
+            --border: rgba(255,255,255,0.06);
+            --border-light: rgba(255,255,255,0.10);
+            --accent: #D4A44C;
+            --accent-glow: rgba(212,164,76,0.20);
+            --accent-dim: rgba(212,164,76,0.10);
+            --text: #F0EBE0;
+            --text-secondary: #8A8478;
+            --text-dim: #4A4640;
+            --green: #6BBF6E;
+            --green-dim: rgba(107,191,110,0.12);
+            --red: #D45C5C;
+            --red-dim: rgba(212,92,92,0.12);
+            --blue: #5C9FD4;
+            --blue-dim: rgba(92,159,212,0.12);
+            --amber: #E8A849;
+            --amber-dim: rgba(232,168,73,0.12);
+            --purple: #9B7FD4;
+            --purple-dim: rgba(155,127,212,0.12);
+            --radius: 16px;
+            --radius-sm: 10px;
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .grain {
+            position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+            opacity: 0.025;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            background-repeat: repeat;
+        }
+
+        .bg-glow {
+            position: fixed; inset: 0; pointer-events: none; z-index: 0;
+            background:
+                radial-gradient(ellipse 500px 400px at 30% 20%, rgba(212,164,76,0.06) 0%, transparent 70%),
+                radial-gradient(ellipse 400px 500px at 70% 80%, rgba(42,36,22,0.4) 0%, transparent 70%),
+                radial-gradient(ellipse 300px 300px at 80% 10%, rgba(30,26,18,0.3) 0%, transparent 70%);
+        }
+
+        .page-wrap {
+            position: relative; z-index: 1;
+            width: 100%; max-width: 400px;
+        }
+
+        /* ===== Page switching ===== */
+        .auth-page {
+            display: none;
+            animation: fadeUp 0.5s ease forwards;
+        }
+        .auth-page.active { display: block; }
+
+        /* Logo area */
+        .logo-area {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeUp 0.6s ease 0.1s both;
+        }
+
+        .logo-icon {
+            width: 72px; height: 72px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, var(--accent) 0%, #C08830 100%);
+            display: inline-flex;
+            align-items: center; justify-content: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .logo-icon::after {
+            content: '';
+            position: absolute; inset: -8px;
+            border-radius: 28px;
+            background: linear-gradient(135deg, var(--accent-glow) 0%, transparent 50%);
+            opacity: 0.4; filter: blur(16px); z-index: -1;
+        }
+
+        .logo-icon svg { width: 36px; height: 36px; }
+        .logo-title { font-size: 28px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; margin-bottom: 8px; }
+        .logo-sub { font-size: 14px; color: var(--text-dim); font-weight: 400; }
+
+        /* Card */
+        .auth-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 32px 24px;
+            margin-bottom: 24px;
+            animation: fadeUp 0.6s ease 0.2s both;
+        }
+
+        .auth-card-title { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+        .auth-card-sub { font-size: 13px; color: var(--text-dim); margin-bottom: 28px; }
+
+        /* Fields */
+        .field { margin-bottom: 20px; }
+        .field:last-of-type { margin-bottom: 0; }
+
+        .field-label {
+            font-size: 13px; font-weight: 500; color: var(--text-secondary);
+            margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+        }
+        .field-label svg { width: 14px; height: 14px; opacity: 0.6; }
+
+        .input-wrap { position: relative; }
+
+        .input-wrap .input-icon {
+            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+            width: 18px; height: 18px; opacity: 0.35; pointer-events: none; transition: opacity 0.2s;
+        }
+        .input-wrap:focus-within .input-icon { opacity: 0.7; }
+
+        .field-input {
+            width: 100%; padding: 14px 14px 14px 42px;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); color: var(--text);
+            font-family: inherit; font-size: 14px; outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .field-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+        .field-input::placeholder { color: var(--text-dim); }
+
+        .pwd-toggle {
+            position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+            width: 20px; height: 20px; background: none; border: none;
+            color: var(--text-dim); cursor: pointer; padding: 0;
+            display: flex; align-items: center; justify-content: center; transition: color 0.2s;
+        }
+        .pwd-toggle:hover { color: var(--text-secondary); }
+        .pwd-toggle svg { width: 18px; height: 18px; }
+
+        /* Error */
+        .field-error {
+            font-size: 12px; color: var(--red); margin-top: 6px;
+            display: none; align-items: center; gap: 4px;
+        }
+        .field-error.show { display: flex; }
+        .field-error svg { width: 14px; height: 14px; flex-shrink: 0; }
+        .field-input.error { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-dim); }
+
+        /* Remember & Forgot */
+        .field-row {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-top: 20px; margin-bottom: 28px;
+        }
+
+        .remember-wrap { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+
+        .remember-checkbox {
+            width: 18px; height: 18px; border-radius: 5px;
+            border: 1.5px solid var(--border-light); background: var(--surface);
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s; flex-shrink: 0;
+        }
+        .remember-checkbox.checked { background: var(--accent); border-color: var(--accent); }
+        .remember-checkbox svg { width: 12px; height: 12px; opacity: 0; transform: scale(0.5); transition: all 0.15s; }
+        .remember-checkbox.checked svg { opacity: 1; transform: scale(1); }
+
+        .remember-text { font-size: 13px; color: var(--text-dim); }
+
+        .forgot-link {
+            font-size: 13px; color: var(--accent); text-decoration: none;
+            font-weight: 500; cursor: pointer; border: none; background: none;
+            font-family: inherit; transition: opacity 0.2s;
+        }
+        .forgot-link:hover { opacity: 0.8; }
+
+        /* Submit */
+        .submit-btn {
+            width: 100%; padding: 16px; border: none; border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--accent) 0%, #C08830 100%);
+            color: var(--bg); font-family: inherit; font-size: 15px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; letter-spacing: 0.02em;
+        }
+        .submit-btn:hover { box-shadow: 0 0 30px var(--accent-glow); transform: translateY(-1px); }
+        .submit-btn:active { transform: translateY(0) scale(0.98); }
+        .submit-btn.loading { pointer-events: none; color: transparent; }
+        .submit-btn .spinner {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 20px; height: 20px; border: 2px solid rgba(13,12,10,0.3);
+            border-top-color: var(--bg); border-radius: 50%; opacity: 0; transition: opacity 0.2s;
+        }
+        .submit-btn.loading .spinner { opacity: 1; animation: spin 0.6s linear infinite; }
+        @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+        /* Footer link */
+        .footer-link {
+            text-align: center; margin-top: 28px;
+            animation: fadeUp 0.6s ease 0.3s both;
+        }
+        .footer-link-text { font-size: 14px; color: var(--text-dim); }
+        .footer-link a {
+            color: var(--accent); text-decoration: none; font-weight: 500;
+            cursor: pointer; transition: opacity 0.2s;
+        }
+        .footer-link a:hover { opacity: 0.8; }
+
+        /* ===== Register: Role selector ===== */
+        .role-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px;
+        }
+
+        .role-option {
+            padding: 14px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+            background: var(--card); cursor: pointer; transition: all 0.2s;
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+            font-family: inherit; position: relative;
+        }
+        .role-option:hover { border-color: var(--border-light); background: var(--card-hover); }
+        .role-option.selected {
+            border-color: var(--accent); background: var(--accent-dim);
+            box-shadow: 0 0 0 1px var(--accent);
+        }
+        .role-option-icon { font-size: 22px; line-height: 1; }
+        .role-option-label { font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+        .role-option.selected .role-option-label { color: var(--accent); }
+        .role-option-check {
+            position: absolute; top: 8px; right: 8px; width: 18px; height: 18px;
+            border-radius: 50%; border: 1.5px solid var(--border-light); background: var(--surface);
+            display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+        }
+        .role-option.selected .role-option-check {
+            background: var(--accent); border-color: var(--accent);
+        }
+        .role-option-check svg {
+            width: 11px; height: 11px; opacity: 0; transform: scale(0.5); transition: all 0.15s;
+        }
+        .role-option.selected .role-option-check svg { opacity: 1; transform: scale(1); }
+
+        /* Special: last item spans full if odd count */
+        .role-option.five-col {
+            grid-column: 1 / -1;
+        }
+
+        .role-grid-label {
+            font-size: 13px; font-weight: 500; color: var(--text-secondary);
+            margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+        }
+        .role-grid-label svg { width: 14px; height: 14px; opacity: 0.6; }
+
+        /* Divider */
+        .divider {
+            display: flex; align-items: center; gap: 12px; margin: 24px 0;
+        }
+        .divider-line { flex: 1; height: 1px; background: var(--border); }
+        .divider-text { font-size: 12px; color: var(--text-dim); font-weight: 500; }
+
+        /* Error Toast */
+        .error-toast {
+            position: fixed; top: 20px; left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            max-width: 360px; width: calc(100% - 32px);
+            padding: 14px 18px; background: var(--red-dim);
+            border: 1px solid rgba(212,92,92,0.2); border-radius: var(--radius-sm);
+            display: flex; align-items: center; gap: 10px; z-index: 100;
+            transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
+        }
+        .error-toast.show { transform: translateX(-50%) translateY(0); }
+        .error-toast-icon { width: 20px; height: 20px; flex-shrink: 0; color: var(--red); }
+        .error-toast-text { font-size: 13px; color: var(--red); font-weight: 500; }
+
+        /* Success Toast */
+        .success-toast {
+            position: fixed; top: 20px; left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            max-width: 360px; width: calc(100% - 32px);
+            padding: 14px 18px; background: var(--green-dim);
+            border: 1px solid rgba(107,191,110,0.2); border-radius: var(--radius-sm);
+            display: flex; align-items: center; gap: 10px; z-index: 100;
+            transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
+        }
+        .success-toast.show { transform: translateX(-50%) translateY(0); }
+        .success-toast-icon { width: 20px; height: 20px; flex-shrink: 0; color: var(--green); }
+        .success-toast-text { font-size: 13px; color: var(--green); font-weight: 500; }
+
+        /* Success Overlay */
+        .success-overlay {
+            position: fixed; inset: 0; background: var(--bg); z-index: 200;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+        }
+        .success-overlay.show { opacity: 1; pointer-events: auto; }
+
+        .success-check {
+            width: 64px; height: 64px; border-radius: 50%; background: var(--green-dim);
+            display: flex; align-items: center; justify-content: center; margin-bottom: 20px;
+            animation: successPop 0.4s ease 0.2s both;
+        }
+        .success-check svg { width: 30px; height: 30px; color: var(--green); }
+        .success-text { font-size: 18px; font-weight: 600; color: var(--text); animation: fadeUp 0.4s ease 0.3s both; }
+        .success-sub { font-size: 13px; color: var(--text-dim); margin-top: 6px; animation: fadeUp 0.4s ease 0.4s both; }
+
+        @keyframes successPop { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Responsive */
+        @media (max-height: 680px) {
+            .logo-area { margin-bottom: 24px; }
+            .logo-icon { width: 56px; height: 56px; border-radius: 16px; }
+            .logo-icon svg { width: 28px; height: 28px; }
+            .logo-title { font-size: 24px; }
+            .auth-card { padding: 24px 20px; }
+        }
+
+        @media (min-width: 431px) {
+            .page-wrap {
+                padding: 40px; background: var(--card);
+                border: 1px solid var(--border); border-radius: 24px;
+                box-shadow: 0 20px 80px rgba(0,0,0,0.4);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="grain"></div>
+<div class="bg-glow"></div>
+
+<div class="page-wrap">
+
+    <!-- Logo (shared) -->
+    <div class="logo-area">
+        <div class="logo-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0D0C0A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+        </div>
+        <div class="logo-title">训练分析系统</div>
+        <div class="logo-sub">Sports Training Analytics</div>
+    </div>
+
+    <!-- ===== Login Page ===== -->
+    <div class="auth-page active" id="loginPage">
+        <div class="auth-card">
+            <div class="auth-card-title">登录您的账户</div>
+            <div class="auth-card-sub">输入凭据以继续</div>
+
+            <div class="field">
+                <div class="field-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    用户名
+                </div>
+                <div class="input-wrap">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <input type="text" class="field-input" id="loginUsername" placeholder="请输入用户名" autocomplete="username">
+                </div>
+                <div class="field-error" id="loginUsernameError">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <span>请输入用户名</span>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="field-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    密码
+                </div>
+                <div class="input-wrap">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <input type="password" class="field-input" id="loginPassword" placeholder="请输入密码" autocomplete="current-password">
+                    <button class="pwd-toggle" onclick="togglePwd('loginPassword','eyeOff1','eyeOn1')" type="button">
+                        <svg id="eyeOff1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                        <svg id="eyeOn1" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                </div>
+                <div class="field-error" id="loginPasswordError">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <span>请输入密码</span>
+                </div>
+            </div>
+
+            <div class="field-row">
+                <div class="remember-wrap" onclick="toggleRemember()">
+                    <div class="remember-checkbox" id="rememberBox">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#0D0C0A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <span class="remember-text">记住我</span>
+                </div>
+                <button class="forgot-link" onclick="showToast('请联系管理员重置密码','error')">忘记密码？</button>
+            </div>
+
+            <button class="submit-btn" id="loginBtn" onclick="handleLogin()">
+                登录
+                <div class="spinner"></div>
+            </button>
+        </div>
+
+        <div class="footer-link">
+            <span class="footer-link-text">没有账户？<a onclick="switchToRegister()">去注册</a></span>
+        </div>
+    </div>
+
+    <!-- ===== Register Page ===== -->
+    <div class="auth-page" id="registerPage">
+        <div class="auth-card">
+            <div class="auth-card-title">创建新账户</div>
+            <div class="auth-card-sub">填写信息以注册</div>
+
+            <div class="field">
+                <div class="field-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    用户名
+                </div>
+                <div class="input-wrap">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <input type="text" class="field-input" id="regUsername" placeholder="请输入用户名" autocomplete="off">
+                </div>
+                <div class="field-error" id="regUsernameError">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <span>请输入用户名</span>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="field-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    密码
+                </div>
+                <div class="input-wrap">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <input type="password" class="field-input" id="regPassword" placeholder="请输入密码" autocomplete="new-password">
+                    <button class="pwd-toggle" onclick="togglePwd('regPassword','eyeOff2','eyeOn2')" type="button">
+                        <svg id="eyeOff2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                        <svg id="eyeOn2" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                </div>
+                <div class="field-error" id="regPasswordError">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <span>请输入密码（至少6位）</span>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="field-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    确认密码
+                </div>
+                <div class="input-wrap">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <input type="password" class="field-input" id="regConfirm" placeholder="请再次输入密码" autocomplete="new-password">
+                    <button class="pwd-toggle" onclick="togglePwd('regConfirm','eyeOff3','eyeOn3')" type="button">
+                        <svg id="eyeOff3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                        <svg id="eyeOn3" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                </div>
+                <div class="field-error" id="regConfirmError">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <span>两次密码不一致</span>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="role-grid-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    选择身份
+                </div>
+                <div class="role-grid" id="roleGrid">
+                    <button class="role-option" data-role="athlete" onclick="selectRole(this)">
+                        <div class="role-option-check">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#0D0C0A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <span class="role-option-icon">🏃</span>
+                        <span class="role-option-label">运动员</span>
+                    </button>
+                    <button class="role-option" data-role="coach" onclick="selectRole(this)">
+                        <div class="role-option-check">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#0D0C0A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <span class="role-option-icon">📋</span>
+                        <span class="role-option-label">主教练</span>
+                    </button>
+                    <button class="role-option" data-role="doctor" onclick="selectRole(this)">
+                        <div class="role-option-check">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#0D0C0A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <span class="role-option-icon">🩺</span>
+                        <span class="role-option-label">队医</span>
+                    </button>
+                    <button class="role-option" data-role="assistant" onclick="selectRole(this)">
+                        <div class="role-option-check">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#0D0C0A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <span class="role-option-icon">🤝</span>
+                        <span class="role-option-label">助教</span>
+                    </button>
+                    <button class="role-option five-col" data-role="manager" onclick="selectRole(this)">
+                        <div class="role-option-check">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#0D0C0A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <span class="role-option-icon">👔</span>
+                        <span class="role-option-label">管理人员</span>
+                    </button>
+                </div>
+                <div class="field-error" id="regRoleError">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <span>请选择身份</span>
+                </div>
+            </div>
+
+            <button class="submit-btn" id="regBtn" onclick="handleRegister()" style="margin-top:28px;">
+                注册
+                <div class="spinner"></div>
+            </button>
+        </div>
+
+        <div class="footer-link">
+            <span class="footer-link-text">已有账户？<a onclick="switchToLogin()">去登录</a></span>
+        </div>
+    </div>
+
+</div>
+
+<!-- Error Toast -->
+<div class="error-toast" id="errorToast">
+    <svg class="error-toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span class="error-toast-text" id="errorToastText"></span>
+</div>
+
+<!-- Success Toast -->
+<div class="success-toast" id="successToast">
+    <svg class="success-toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    <span class="success-toast-text" id="successToastText"></span>
+</div>
+
+<!-- Success Overlay -->
+<div class="success-overlay" id="successOverlay">
+    <div class="success-check">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="success-text" id="successText">登录成功</div>
+    <div class="success-sub" id="successSub">正在进入系统...</div>
+</div>
+
+<script>
+    let selectedRole = '';
+
+    // Password toggle (shared)
+    function togglePwd(inputId, offId, onId) {
+        const pwd = document.getElementById(inputId);
+        const off = document.getElementById(offId);
+        const on = document.getElementById(onId);
+        if (pwd.type === 'password') {
+            pwd.type = 'text'; off.style.display = 'none'; on.style.display = 'block';
+        } else {
+            pwd.type = 'password'; off.style.display = 'block'; on.style.display = 'none';
+        }
+    }
+
+    // Remember toggle
+    let remembered = false;
+    function toggleRemember() {
+        remembered = !remembered;
+        document.getElementById('rememberBox').classList.toggle('checked', remembered);
+    }
+
+    // Page switching
+    function switchToRegister() {
+        document.getElementById('loginPage').classList.remove('active');
+        const reg = document.getElementById('registerPage');
+        reg.classList.remove('active');
+        // Force reflow for animation restart
+        void reg.offsetWidth;
+        reg.classList.add('active');
+    }
+    function switchToLogin() {
+        document.getElementById('registerPage').classList.remove('active');
+        const login = document.getElementById('loginPage');
+        login.classList.remove('active');
+        void login.offsetWidth;
+        login.classList.add('active');
+    }
+
+    // Role selection
+    function selectRole(btn) {
+        document.querySelectorAll('.role-option').forEach(r => r.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedRole = btn.dataset.role;
+        clearError('regRole');
+    }
+
+    // Clear error helpers
+    function clearError(fieldPrefix) {
+        const input = document.getElementById(fieldPrefix + 'Username') || document.getElementById(fieldPrefix + 'Password') || document.getElementById(fieldPrefix + 'Confirm');
+        if (input) input.classList.remove('error');
+        const err = document.getElementById(fieldPrefix + 'Error');
+        if (err) err.classList.remove('show');
+    }
+    function clearLoginErrors() {
+        ['loginUsername','loginPassword'].forEach(id => {
+            document.getElementById(id).classList.remove('error');
+        });
+        ['loginUsernameError','loginPasswordError'].forEach(id => {
+            document.getElementById(id).classList.remove('show');
+        });
+    }
+    function clearRegErrors() {
+        ['regUsername','regPassword','regConfirm'].forEach(id => {
+            document.getElementById(id).classList.remove('error');
+        });
+        ['regUsernameError','regPasswordError','regConfirmError','regRoleError'].forEach(id => {
+            document.getElementById(id).classList.remove('show');
+        });
+    }
+
+    // Input listeners — clear error on type
+    ['loginUsername','loginPassword'].forEach(id => {
+        document.getElementById(id).addEventListener('input', clearLoginErrors);
+    });
+    ['regUsername','regPassword','regConfirm'].forEach(id => {
+        document.getElementById(id).addEventListener('input', function() {
+            this.classList.remove('error');
+            const errEl = document.getElementById(id + 'Error');
+            if (errEl) errEl.classList.remove('show');
+        });
+    });
+
+    // Toast
+    function showToast(msg, type) {
+        if (type === 'error') {
+            const t = document.getElementById('errorToast');
+            document.getElementById('errorToastText').textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        } else {
+            const t = document.getElementById('successToast');
+            document.getElementById('successToastText').textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+    }
+
+    // Login handler
+    function handleLogin() {
+        const u = document.getElementById('loginUsername');
+        const p = document.getElementById('loginPassword');
+        let valid = true;
+        clearLoginErrors();
+
+        if (!u.value.trim()) { u.classList.add('error'); document.getElementById('loginUsernameError').classList.add('show'); valid = false; }
+        if (!p.value.trim()) { p.classList.add('error'); document.getElementById('loginPasswordError').classList.add('show'); valid = false; }
+        if (!valid) return;
+
+        const btn = document.getElementById('loginBtn');
+        btn.classList.add('loading');
+        setTimeout(() => {
+            btn.classList.remove('loading');
+            showToast('用户名或密码错误', 'error');
+        }, 1500);
+    }
+
+    // Register handler
+    function handleRegister() {
+        const u = document.getElementById('regUsername');
+        const p = document.getElementById('regPassword');
+        const c = document.getElementById('regConfirm');
+        let valid = true;
+        clearRegErrors();
+
+        if (!u.value.trim()) { u.classList.add('error'); document.getElementById('regUsernameError').classList.add('show'); valid = false; }
+        if (!p.value.trim() || p.value.length < 6) { p.classList.add('error'); document.getElementById('regPasswordError').classList.add('show'); valid = false; }
+        if (c.value !== p.value) { c.classList.add('error'); document.getElementById('regConfirmError').classList.add('show'); valid = false; }
+        if (!selectedRole) { document.getElementById('regRoleError').classList.add('show'); valid = false; }
+        if (!valid) return;
+
+        const roleNames = { athlete: '运动员', coach: '主教练', doctor: '队医', assistant: '助教', manager: '管理人员' };
+        const btn = document.getElementById('regBtn');
+        btn.classList.add('loading');
+
+        setTimeout(() => {
+            btn.classList.remove('loading');
+            document.getElementById('successText').textContent = '注册成功';
+            document.getElementById('successSub').textContent = '您已注册为' + roleNames[selectedRole] + '，正在进入系统...';
+            document.getElementById('successOverlay').classList.add('show');
+        }, 1200);
+    }
+
+    // Enter key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            if (document.getElementById('loginPage').classList.contains('active')) handleLogin();
+            else handleRegister();
+        }
+    });
+</script>
+
+</body>
+</html>
