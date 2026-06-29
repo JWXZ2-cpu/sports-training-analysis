@@ -181,24 +181,11 @@ export default function ResultView({ result, reportLang }) {
 
       {/* ====== 1. 核心指标区（Hero Card） ====== */}
       <div style={{
-        background: "linear-gradient(145deg, rgba(31,30,25,0.95) 0%, rgba(23,22,19,0.95) 100%)",
+        background: "linear-gradient(135deg, rgba(30,38,52,0.6) 0%, rgba(30,26,22,0.4) 100%)",
         border: "1px solid var(--border)",
         borderRadius: 16,
         padding: "24px 20px",
-        position: "relative",
-        overflow: "hidden",
       }}>
-        {/* 右上角光晕 */}
-        <div style={{
-          position: "absolute",
-          top: -40,
-          right: -40,
-          width: 140,
-          height: 140,
-          background: "radial-gradient(circle, var(--accent-glow) 0%, transparent 70%)",
-          borderRadius: "50%",
-          pointerEvents: "none",
-        }} />
 
         {/* 预警提示 */}
         {result.risk_flag && (
