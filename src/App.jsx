@@ -23,6 +23,7 @@ import AssistantProfile from "./pages/AssistantProfile.jsx";
 import ManagerHome from "./pages/ManagerHome.jsx";
 import ManagerAttendance from "./pages/ManagerAttendance.jsx";
 import ManagerProfile from "./pages/ManagerProfile.jsx";
+import TeamManagement from "./pages/TeamManagement.jsx";
 import RolePlaceholder from "./pages/RolePlaceholder.jsx";
 
 function AppRoutes() {
@@ -105,6 +106,12 @@ function AppRoutes() {
           <CoachGuard>
             <CoachAISuggestion onBack={() => window.location.href = "/coach"} />
           </CoachGuard>
+        </ProtectedRoute>
+      } />
+      {/* 团队管理 */}
+      <Route path="/coach/team" element={
+        <ProtectedRoute allowedRoles={["head_coach"]}>
+          <TeamManagement onBack={() => window.location.href = "/coach"} />
         </ProtectedRoute>
       } />
 

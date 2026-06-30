@@ -10,8 +10,9 @@ import { ROLE_LABELS } from "../styles/sharedStyles.js";
  */
 export default function ProfileSheet({ isOpen, onClose }) {
   const { user, logout } = useAuth();
-  const { t } = useI18n();
+  const { lang, t } = useI18n();
   const coachT = t.coach || {};
+  const isZh = lang === "zh";
   const [teamInfo, setTeamInfo] = useState(null);
   const [copied, setCopied] = useState(false);
 
@@ -108,32 +109,34 @@ export default function ProfileSheet({ isOpen, onClose }) {
           <InfoRow label={coachT.userId || "用户 ID"} value={user?.id || "--"} />
         </div>
 
-        {/* 团队邀请码（仅主教练） */}
+        {/* 团队管理入口（仅主教练） */}
         {user?.role === "head_coach" && teamInfo && (
-          <div style={{
-            background: "var(--card)", border: "1px solid var(--border)",
-            borderRadius: 10, padding: "14px 16px", marginBottom: 24,
-          }}>
-            <div style={{ fontSize: 11, color: "var(--text-dim)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              {coachT.bindingManage ? "团队邀请码" : "团队邀请码"}
+          <div
+            onClick={() => { onClose(); setTimeout(() => { window.location.href = "/coach/team"; }, 300); }}
+            style={{
+              background: "var(--card)", border: "1px solid var(--border)",
+              borderRadius: 10, padding: "14px 16px", marginBottom: 24,
+              cursor: "pointer", transition: "border-color 0.2s",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>
+                👥 {teamInfo.name}
+              </span>
+              <span style={{ fontSize: 12, color: "var(--text-dim)" }}>›</span>
             </div>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <span style={{
-                fontSize: 22, fontWeight: 700, color: "var(--accent)",
+                fontSize: 16, fontWeight: 700, color: "var(--accent)",
                 letterSpacing: "0.15em", fontFamily: "var(--font-primary)",
               }}>
                 {teamInfo.invite_code}
               </span>
-              <button onClick={handleCopy} style={{
-                background: "var(--accent-dim)", border: "1px solid var(--accent)",
-                borderRadius: 8, padding: "6px 14px", color: "var(--accent)",
-                fontSize: 12, fontWeight: 500, cursor: "pointer", fontFamily: "inherit",
-              }}>
-                {copied ? "✓ 已复制" : "复制"}
-              </button>
-            </div>
-            <div style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 8 }}>
-              {teamInfo.name} · {teamInfo.members?.length || 0} 名成员
+              <span style={{ fontSize: 11, color: "var(--text-dim)" }}>
+                {teamInfo.members?.length || 0} {isZh ? "名成员" : "members"}
+              </span>
             </div>
           </div>
         )}
