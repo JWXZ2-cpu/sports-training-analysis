@@ -25,7 +25,6 @@
     overflow: hidden;
   }
 
-  /* 纹理 */
   .poster::before {
     content: '';
     position: absolute;
@@ -36,20 +35,29 @@
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
-  /* 光晕 */
   .glow { position: absolute; border-radius: 50%; filter: blur(80px); pointer-events: none; }
-  .glow-1 { width: 400px; height: 400px; background: rgba(212,164,76,0.08); top: -80px; left: -80px; }
-  .glow-2 { width: 300px; height: 300px; background: rgba(42,36,22,0.4); bottom: -60px; right: -60px; }
+  .glow-1 { width: 400px; height: 400px; background: rgba(212,164,76,0.06); top: -80px; left: -80px; }
+  .glow-2 { width: 300px; height: 300px; background: rgba(42,36,22,0.3); bottom: -60px; right: -60px; }
 
-  /* 截图层 */
-  .screenshots { position: absolute; inset: 0; z-index: 1; }
+  /* 截图网格 — 有序交错 */
+  .screenshots {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-content: center;
+    gap: 0;
+    padding: 20px;
+  }
 
   .screenshot {
-    position: absolute;
-    border-radius: 18px;
+    border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 15px 50px rgba(0,0,0,0.6);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
     border: 1px solid rgba(255,255,255,0.08);
+    opacity: 0.5;
   }
 
   .screenshot img {
@@ -59,14 +67,31 @@
     display: block;
   }
 
-  /* 截图位置 — 大尺寸、交错重叠 */
-  .s1 { width: 240px; top: -20px; left: -30px; transform: rotate(-8deg); z-index: 3; opacity: 0.55; }
-  .s2 { width: 220px; top: 10px; right: -20px; transform: rotate(6deg); z-index: 4; opacity: 0.5; }
-  .s3 { width: 260px; top: 180px; left: 60px; transform: rotate(3deg); z-index: 5; opacity: 0.6; }
-  .s4 { width: 230px; top: 200px; right: 30px; transform: rotate(-5deg); z-index: 6; opacity: 0.55; }
-  .s5 { width: 250px; top: 420px; left: -20px; transform: rotate(5deg); z-index: 4; opacity: 0.5; }
-  .s6 { width: 220px; top: 440px; right: -10px; transform: rotate(-4deg); z-index: 5; opacity: 0.55; }
-  .s7 { width: 200px; top: 620px; left: 80px; transform: rotate(7deg); z-index: 3; opacity: 0.45; }
+  /* 三行布局，每行略有交错 */
+  .row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .row-1 { margin-bottom: -20px; }
+  .row-2 { margin-bottom: -20px; }
+  .row-3 {}
+
+  .row-1 .screenshot { width: 200px; height: 360px; }
+  .row-2 .screenshot { width: 210px; height: 370px; }
+  .row-3 .screenshot { width: 195px; height: 350px; }
+
+  .row-1 .s1 { transform: rotate(-2deg); opacity: 0.45; }
+  .row-1 .s2 { transform: rotate(1deg); opacity: 0.55; }
+  .row-1 .s3 { transform: rotate(2deg); opacity: 0.45; }
+
+  .row-2 .s4 { transform: rotate(1deg); opacity: 0.5; }
+  .row-2 .s5 { transform: rotate(-1deg); opacity: 0.6; }
+  .row-2 .s6 { transform: rotate(2deg); opacity: 0.5; }
+
+  .row-3 .s7 { transform: rotate(-1deg); opacity: 0.5; }
 
   /* 中央内容 */
   .content {
@@ -81,58 +106,45 @@
   }
 
   .logo-icon {
-    width: 80px;
-    height: 80px;
-    border-radius: 22px;
+    width: 72px;
+    height: 72px;
+    border-radius: 20px;
     background: linear-gradient(135deg, #D4A44C, #C08830);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     box-shadow: 0 0 40px rgba(212,164,76,0.3);
-    position: relative;
   }
-
-  .logo-icon::after {
-    content: '';
-    position: absolute;
-    inset: -8px;
-    border-radius: 28px;
-    background: linear-gradient(135deg, rgba(212,164,76,0.12), transparent);
-    filter: blur(16px);
-    z-index: -1;
-  }
-
-  .logo-icon svg { width: 38px; height: 38px; }
+  .logo-icon svg { width: 34px; height: 34px; }
 
   .mai-text {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 400;
     color: #B8B2A8;
     letter-spacing: 0.12em;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
   }
   .mai-text span { opacity: 0.9; }
 
   .slogan {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 300;
     color: #B8B2A8;
     letter-spacing: 0.3em;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
-
   .slogan-en {
     font-size: 11px;
     font-weight: 300;
     color: rgba(184,178,168,0.5);
-    letter-spacing: 0.12em;
+    letter-spacing: 0.1em;
   }
 
   /* 底部 */
   .footer {
     position: absolute;
-    bottom: 40px;
+    bottom: 36px;
     left: 0;
     right: 0;
     text-align: center;
@@ -143,16 +155,13 @@
     width: 40px;
     height: 1px;
     background: rgba(212,164,76,0.3);
-    margin: 0 auto 16px;
+    margin: 0 auto 14px;
   }
 
   .qr-code {
-    width: 100px;
-    height: 100px;
-    background: #fff;
-    border-radius: 12px;
-    margin: 0 auto 12px;
-    padding: 8px;
+    width: 90px;
+    height: 90px;
+    margin: 0 auto 10px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -160,15 +169,14 @@
   .qr-code img { width: 100%; height: 100%; object-fit: contain; }
 
   .url-text {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     color: #D4A44C;
     letter-spacing: 0.08em;
   }
-
   .tagline {
-    margin-top: 8px;
-    font-size: 11px;
+    margin-top: 6px;
+    font-size: 10px;
     font-weight: 300;
     color: rgba(184,178,168,0.4);
   }
@@ -180,15 +188,21 @@
   <div class="glow glow-1"></div>
   <div class="glow glow-2"></div>
 
-  <!-- 截图层 -->
+  <!-- 截图层：三行有序排列 -->
   <div class="screenshots">
-    <div class="screenshot s1"><img src="s1.png" alt=""></div>
-    <div class="screenshot s2"><img src="s2.png" alt=""></div>
-    <div class="screenshot s3"><img src="s3.png" alt=""></div>
-    <div class="screenshot s4"><img src="s4.png" alt=""></div>
-    <div class="screenshot s5"><img src="s5.png" alt=""></div>
-    <div class="screenshot s6"><img src="s6.png" alt=""></div>
-    <div class="screenshot s7"><img src="s7.png" alt=""></div>
+    <div class="row row-1">
+      <div class="screenshot s1"><img src="s1.png" alt=""></div>
+      <div class="screenshot s2"><img src="s2.png" alt=""></div>
+      <div class="screenshot s3"><img src="s3.png" alt=""></div>
+    </div>
+    <div class="row row-2">
+      <div class="screenshot s4"><img src="s4.png" alt=""></div>
+      <div class="screenshot s5"><img src="s5.png" alt=""></div>
+      <div class="screenshot s6"><img src="s6.png" alt=""></div>
+    </div>
+    <div class="row row-3">
+      <div class="screenshot s7"><img src="s7.png" alt=""></div>
+    </div>
   </div>
 
   <!-- 中央内容 -->
