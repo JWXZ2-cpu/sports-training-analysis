@@ -1,6 +1,7 @@
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { useI18n } from "../locales/index.jsx";
 import { AssistantNav } from "./AssistantHome.jsx";
+import TeamJoinCard from "../components/TeamJoinCard.jsx";
 
 export default function AssistantProfile() {
   const { user, logout } = useAuth();
@@ -63,6 +64,9 @@ export default function AssistantProfile() {
             <span style={{ fontWeight: 500, color: "var(--text-secondary)" }}>{user?.id || "--"}</span>
           </div>
         </div>
+
+        {/* 加入团队（无团队时显示） */}
+        <TeamJoinCard />
 
         {/* 退出登录 */}
         <button onClick={handleLogout} style={{

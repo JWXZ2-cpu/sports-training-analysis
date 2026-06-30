@@ -1,8 +1,12 @@
 import { useAuth } from "../contexts/AuthContext.jsx";
+import { useI18n } from "../locales/index.jsx";
 import BottomNav from "../components/BottomNav.jsx";
+import TeamJoinCard from "../components/TeamJoinCard.jsx";
 
 export default function MyProfile() {
   const { user, logout } = useAuth();
+  const { lang, t } = useI18n();
+  const isZh = lang === "zh";
 
   const handleLogout = () => {
     logout();
@@ -60,6 +64,9 @@ export default function MyProfile() {
             <span style={{ fontWeight: 500, color: "var(--text-tertiary)" }}>{user?.id || "--"}</span>
           </div>
         </div>
+
+        {/* 加入团队（无团队时显示） */}
+        <TeamJoinCard />
 
         {/* 退出登录 */}
         <button onClick={handleLogout} style={{

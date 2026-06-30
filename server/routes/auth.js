@@ -121,6 +121,33 @@ router.put("/profile", authenticateToken, (req, res) => {
   }
 });
 
+// POST /api/auth/join-team
+// 注册后通过邀请码加入团队
+router.post("/join-team", authenticateToken, (req, res) => {
+  try {
+    const { invite_code } = req.body;
+    if (!invite_code) return res.status(400).json({ error: "请输入邀请码" });
+
+    // 检查是否已有团队
+    const currentUser = db.users.findById(req.user.id);
+    if (currentUser?.team_id) {
+      return res.status(400).json({ error: "你已在团队中，如需更换请联系管理员" });
+    }
+
+    // 验证邀请码
+    const team = db.teams.findOne({ invite_code: invite_code.toUpperCase() });
+    if (!team) return res.status(404).json({ error: "邀请码无效" });
+
+    // 加入团队
+    db.users.update(req.user.id, { team_id: team.id });
+
+    res.json({ message: "加入成功", team_name: team.name, team_id: team.id });
+  } catch (err) {
+    console.error("加入团队失败:", err);
+    res.status(500).json({ error: "加入失败" });
+  }
+});
+
 // GET /api/auth/users
 router.get("/users", authenticateToken, (req, res) => {
   try {

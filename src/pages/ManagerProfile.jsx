@@ -1,5 +1,6 @@
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { ManagerNav } from "./ManagerHome.jsx";
+import TeamJoinCard from "../components/TeamJoinCard.jsx";
 
 export default function ManagerProfile() {
   const { user, logout } = useAuth();
@@ -60,6 +61,9 @@ export default function ManagerProfile() {
             <span style={{ fontWeight: 500, color: "var(--text-secondary)" }}>{user?.id || "--"}</span>
           </div>
         </div>
+
+        {/* 加入团队（无团队时显示） */}
+        <TeamJoinCard />
 
         {/* 退出登录 */}
         <button onClick={handleLogout} style={{
