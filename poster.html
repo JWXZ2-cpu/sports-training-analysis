@@ -73,18 +73,17 @@
     display: block;
   }
 
-  /* 第一行 4 张 */
-  .row-1 .screenshot { width: 165px; height: 300px; }
+  /* 第一行 3 张 */
+  .row-1 .screenshot { width: 200px; height: 360px; }
   .row-1 .s1 { transform: rotate(-2deg); opacity: 0.45; }
   .row-1 .s2 { transform: rotate(1deg); opacity: 0.55; }
-  .row-1 .s3 { transform: rotate(-1deg); opacity: 0.5; }
-  .row-1 .s4 { transform: rotate(2deg); opacity: 0.45; }
+  .row-1 .s3 { transform: rotate(2deg); opacity: 0.5; }
 
   /* 第二行 3 张 */
-  .row-2 .screenshot { width: 180px; height: 320px; }
-  .row-2 .s5 { transform: rotate(1deg); opacity: 0.5; }
-  .row-2 .s6 { transform: rotate(-2deg); opacity: 0.55; }
-  .row-2 .s7 { transform: rotate(1deg); opacity: 0.5; }
+  .row-2 .screenshot { width: 200px; height: 360px; }
+  .row-2 .s4 { transform: rotate(1deg); opacity: 0.5; }
+  .row-2 .s5 { transform: rotate(-2deg); opacity: 0.55; }
+  .row-2 .s6 { transform: rotate(1deg); opacity: 0.5; }
 
   /* 暗角遮罩 */
   .vignette {
@@ -201,18 +200,17 @@
   <div class="glow glow-1"></div>
   <div class="glow glow-2"></div>
 
-  <!-- 截图背景：两行 -->
+  <!-- 截图背景：上三下三 -->
   <div class="screenshots">
     <div class="row row-1">
       <div class="screenshot s1"><img src="s1.png" alt=""></div>
       <div class="screenshot s2"><img src="s2.png" alt=""></div>
       <div class="screenshot s3"><img src="s3.png" alt=""></div>
-      <div class="screenshot s4"><img src="s4.png" alt=""></div>
     </div>
     <div class="row row-2">
+      <div class="screenshot s4"><img src="s4.png" alt=""></div>
       <div class="screenshot s5"><img src="s5.png" alt=""></div>
       <div class="screenshot s6"><img src="s6.png" alt=""></div>
-      <div class="screenshot s7"><img src="s7.png" alt=""></div>
     </div>
   </div>
 
