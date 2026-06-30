@@ -1,5 +1,7 @@
+import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { useI18n } from "../locales/index.jsx";
+import { teamService } from "../services";
 import { ROLE_LABELS } from "../styles/sharedStyles.js";
 
 
@@ -10,6 +12,14 @@ export default function ProfileSheet({ isOpen, onClose }) {
   const { user, logout } = useAuth();
   const { t } = useI18n();
   const coachT = t.coach || {};
+  const [teamInfo, setTeamInfo] = useState(null);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && user?.role === "head_coach") {
+      teamService.getMyTeam().then((data) => setTeamInfo(data.team)).catch(() => {});
+    }
+  }, [isOpen, user?.role]);
 
   const handleLogout = () => {
     onClose();
@@ -17,6 +27,14 @@ export default function ProfileSheet({ isOpen, onClose }) {
       logout();
       window.location.href = "/login";
     }, 300);
+  };
+
+  const handleCopy = () => {
+    if (!teamInfo?.invite_code) return;
+    navigator.clipboard.writeText(teamInfo.invite_code).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   };
 
   return (
@@ -89,6 +107,36 @@ export default function ProfileSheet({ isOpen, onClose }) {
           <InfoRow label={coachT.roleLabel || "角色"} value={ROLE_LABELS[user?.role] || user?.role} />
           <InfoRow label={coachT.userId || "用户 ID"} value={user?.id || "--"} />
         </div>
+
+        {/* 团队邀请码（仅主教练） */}
+        {user?.role === "head_coach" && teamInfo && (
+          <div style={{
+            background: "var(--card)", border: "1px solid var(--border)",
+            borderRadius: 10, padding: "14px 16px", marginBottom: 24,
+          }}>
+            <div style={{ fontSize: 11, color: "var(--text-dim)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              {coachT.bindingManage ? "团队邀请码" : "团队邀请码"}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span style={{
+                fontSize: 22, fontWeight: 700, color: "var(--accent)",
+                letterSpacing: "0.15em", fontFamily: "var(--font-primary)",
+              }}>
+                {teamInfo.invite_code}
+              </span>
+              <button onClick={handleCopy} style={{
+                background: "var(--accent-dim)", border: "1px solid var(--accent)",
+                borderRadius: 8, padding: "6px 14px", color: "var(--accent)",
+                fontSize: 12, fontWeight: 500, cursor: "pointer", fontFamily: "inherit",
+              }}>
+                {copied ? "✓ 已复制" : "复制"}
+              </button>
+            </div>
+            <div style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 8 }}>
+              {teamInfo.name} · {teamInfo.members?.length || 0} 名成员
+            </div>
+          </div>
+        )}
 
         {/* 退出登录 */}
         <button onClick={handleLogout} style={{

@@ -4,6 +4,7 @@ import { LanguageProvider } from "./locales/index.jsx";
 import { ROLE_HOME } from "./styles/sharedStyles.js";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AthleteGuard from "./components/AthleteGuard.jsx";
+import CoachGuard from "./components/CoachGuard.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import Login from "./pages/Login.jsx";
 import AthleteHome from "./pages/AthleteHome.jsx";
@@ -93,13 +94,17 @@ function AppRoutes() {
       {/* 主教练界面（单页Tab切换） */}
       <Route path="/coach" element={
         <ProtectedRoute allowedRoles={["head_coach"]}>
-          <CoachHome />
+          <CoachGuard>
+            <CoachHome />
+          </CoachGuard>
         </ProtectedRoute>
       } />
       {/* AI辅助计划（独立页面，从计划Tab跳转） */}
       <Route path="/coach/ai-suggestion" element={
         <ProtectedRoute allowedRoles={["head_coach"]}>
-          <CoachAISuggestion onBack={() => window.location.href = "/coach"} />
+          <CoachGuard>
+            <CoachAISuggestion onBack={() => window.location.href = "/coach"} />
+          </CoachGuard>
         </ProtectedRoute>
       } />
 
