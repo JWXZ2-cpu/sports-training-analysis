@@ -51,7 +51,8 @@ async function request(method, url, { body, params, isFormData = false } = {}) {
   try {
     return JSON.parse(text);
   } catch {
-    return {};
+    console.error("[API] 非 JSON 响应:", res.url, res.status, text.substring(0, 200));
+    throw new Error(`服务器返回了非 JSON 响应 (${res.status}): ${text.substring(0, 100)}`);
   }
 }
 
