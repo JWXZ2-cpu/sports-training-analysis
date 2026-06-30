@@ -160,6 +160,9 @@ export default function Login() {
           </div>
           <div className="auth-logo-title">脉</div>
           <div className="auth-logo-sub">M<span style={{ opacity: 0.5 }}>ovement</span> · A<span style={{ opacity: 0.5 }}>nalysis</span> · I<span style={{ opacity: 0.5 }}>ntelligence</span></div>
+          <div style={{ marginTop: 16, fontSize: 12, fontWeight: 300, color: "var(--text-dim)", letterSpacing: "0.3em", fontFamily: "var(--font-primary)" }}>
+            你的训练，脉络清晰
+          </div>
         </div>
 
         {/* ===== 登录页面 ===== */}
