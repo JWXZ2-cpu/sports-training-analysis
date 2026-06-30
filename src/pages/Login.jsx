@@ -159,7 +159,7 @@ export default function Login() {
             </svg>
           </div>
           <div className="auth-logo-title">脉</div>
-          <div className="auth-logo-sub">M<span style={{ opacity: 0.5 }}>ovement</span> · A<span style={{ opacity: 0.5 }}>nalysis</span> · I<span style={{ opacity: 0.5 }}>ntelligence</span></div>
+          <div className="auth-logo-sub">M<span style={{ opacity: 0.8 }}>ovement</span> · A<span style={{ opacity: 0.8 }}>nalysis</span> · I<span style={{ opacity: 0.8 }}>ntelligence</span></div>
           <div style={{ marginTop: 16, fontSize: 12, fontWeight: 300, color: "var(--text-dim)", letterSpacing: "0.3em", fontFamily: "var(--font-primary)" }}>
             你的训练，脉络清晰
           </div>
