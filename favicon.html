@@ -38,8 +38,8 @@
       <div class="label">48×48</div>
     </div>
     <div class="item">
-      <canvas id="c180" width="180" height="180" style="width: 120px; height: 120px;"></canvas>
-      <div class="label">180×180 (Apple)</div>
+      <canvas id="c192" width="192" height="192" style="width: 120px; height: 120px;"></canvas>
+      <div class="label">192×192 (PWA)</div>
     </div>
     <div class="item">
       <canvas id="c512" width="512" height="512" style="width: 140px; height: 140px;"></canvas>
@@ -51,7 +51,7 @@
     <a class="btn" id="dl16" download="favicon-16.png">16px</a>
     <a class="btn" id="dl32" download="favicon-32.png">32px</a>
     <a class="btn" id="dl48" download="favicon-48.png">48px</a>
-    <a class="btn" id="dl180" download="apple-touch-icon.png">180px</a>
+    <a class="btn" id="dl192" download="favicon-192.png">192px</a>
     <a class="btn" id="dl512" download="favicon-512.png">512px</a>
   </div>
 
@@ -113,7 +113,7 @@ function drawFavicon(canvas) {
 }
 
 // 绘制所有尺寸
-const sizes = [16, 32, 48, 180, 512];
+const sizes = [16, 32, 48, 192, 512];
 sizes.forEach(s => {
   const canvas = document.getElementById('c' + s);
   drawFavicon(canvas);
