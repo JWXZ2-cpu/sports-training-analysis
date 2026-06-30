@@ -158,8 +158,8 @@ export default function Login() {
               <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
             </svg>
           </div>
-          <div className="auth-logo-title">{authT.appTitle || "训练分析系统"}</div>
-          <div className="auth-logo-sub">{authT.appSubtitle || "Sports Training Analytics"}</div>
+          <div className="auth-logo-title">脉</div>
+          <div className="auth-logo-sub">MAI</div>
         </div>
 
         {/* ===== 登录页面 ===== */}

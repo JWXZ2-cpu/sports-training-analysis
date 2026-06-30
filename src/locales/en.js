@@ -670,8 +670,8 @@ Please generate a structured training analysis report based on the above informa
   // 登录页面
   // ============================================
   auth: {
-    appTitle: "Training Analysis System",
-    appSubtitle: "Sports Training Analytics",
+    appTitle: "脉",
+    appSubtitle: "MAI",
     loginTitle: "Sign in to your account",
     registerTitle: "Create new account",
     username: "Username",

@@ -613,8 +613,8 @@ Genera un report strutturato di analisi dell'allenamento integrando la Formula d
   // Pagina di Login
   // ============================================
   auth: {
-    appTitle: "Sistema di Analisi Allenamento",
-    appSubtitle: "Analisi Allenamento Sportivo",
+    appTitle: "脉",
+    appSubtitle: "MAI",
     loginTitle: "Accedi al tuo account",
     registerTitle: "Crea un nuovo account",
     username: "Nome utente",

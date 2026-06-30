@@ -649,8 +649,8 @@ const zh = {
   // 登录页面
   // ============================================
   auth: {
-    appTitle: "训练分析系统",
-    appSubtitle: "运动训练数据分析",
+    appTitle: "脉",
+    appSubtitle: "MAI",
     loginTitle: "登录账号",
     registerTitle: "创建新账号",
     username: "用户名",
