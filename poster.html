@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>脉 MAI — 产品海报</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: #0D0C0A;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  .poster {
+    width: 1080px;
+    height: 1920px;
+    background: #0D0C0A;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* 纹理覆盖 */
+  .poster::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0.02;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* 背景光晕 */
+  .glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+  }
+  .glow-1 { width: 600px; height: 600px; background: rgba(212,164,76,0.06); top: -100px; left: -100px; }
+  .glow-2 { width: 500px; height: 500px; background: rgba(42,36,22,0.3); bottom: -100px; right: -100px; }
+  .glow-3 { width: 400px; height: 400px; background: rgba(30,26,18,0.4); top: 40%; left: 50%; transform: translate(-50%, -50%); }
+
+  /* UI 截图背景层 */
+  .screenshots {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+
+  .screenshot {
+    position: absolute;
+    width: 280px;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    opacity: 0.18;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .screenshot img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* 如果没有真实截图，用模拟卡片 */
+  .screenshot-mock {
+    background: linear-gradient(135deg, #1F1E19, #171613);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .mock-bar { height: 8px; border-radius: 4px; background: rgba(212,164,76,0.15); }
+  .mock-bar.short { width: 60%; }
+  .mock-bar.medium { width: 80%; }
+  .mock-card {
+    background: rgba(255,255,255,0.04);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .mock-circle {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(212,164,76,0.2);
+    flex-shrink: 0;
+  }
+  .mock-lines { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .mock-line { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.06); }
+  .mock-line.half { width: 50%; }
+  .mock-score {
+    font-size: 28px; font-weight: 700; color: rgba(212,164,76,0.3);
+    text-align: center; padding: 10px 0;
+  }
+  .mock-chart {
+    height: 60px; border-radius: 8px;
+    background: linear-gradient(to right, rgba(107,191,110,0.1), rgba(212,164,76,0.1), rgba(212,92,92,0.1));
+  }
+  .mock-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .mock-tag {
+    padding: 4px 10px; border-radius: 12px; font-size: 10px;
+    background: rgba(212,164,76,0.1); color: rgba(212,164,76,0.3);
+  }
+
+  /* 截图位置 */
+  .s1 { top: 5%; left: -3%; transform: rotate(-6deg); }
+  .s2 { top: 2%; right: -2%; transform: rotate(4deg); }
+  .s3 { top: 28%; left: 8%; transform: rotate(3deg); }
+  .s4 { top: 30%; right: 5%; transform: rotate(-5deg); }
+  .s5 { top: 55%; left: -5%; transform: rotate(5deg); }
+  .s6 { top: 52%; right: -3%; transform: rotate(-3deg); }
+  .s7 { top: 75%; left: 15%; transform: rotate(-4deg); }
+
+  /* 中央内容区 */
+  .content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 5;
+  }
+
+  .logo-icon {
+    width: 120px;
+    height: 120px;
+    border-radius: 32px;
+    background: linear-gradient(135deg, #D4A44C, #C08830);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 32px;
+    position: relative;
+    box-shadow: 0 0 60px rgba(212,164,76,0.3);
+  }
+
+  .logo-icon::after {
+    content: '';
+    position: absolute;
+    inset: -12px;
+    border-radius: 40px;
+    background: linear-gradient(135deg, rgba(212,164,76,0.15), transparent);
+    filter: blur(20px);
+    z-index: -1;
+  }
+
+  .logo-icon svg {
+    width: 56px;
+    height: 56px;
+  }
+
+  .mai-text {
+    font-size: 22px;
+    font-weight: 400;
+    color: #B8B2A8;
+    letter-spacing: 0.15em;
+    margin-bottom: 40px;
+  }
+
+  .mai-text span {
+    opacity: 0.9;
+  }
+
+  .slogan {
+    font-size: 20px;
+    font-weight: 300;
+    color: #B8B2A8;
+    letter-spacing: 0.3em;
+    margin-bottom: 12px;
+  }
+
+  .slogan-en {
+    font-size: 14px;
+    font-weight: 300;
+    color: rgba(184,178,168,0.5);
+    letter-spacing: 0.15em;
+  }
+
+  /* 底部区域 */
+  .footer {
+    position: absolute;
+    bottom: 60px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    z-index: 5;
+  }
+
+  .qr-code {
+    width: 160px;
+    height: 160px;
+    background: #fff;
+    border-radius: 16px;
+    margin: 0 auto 20px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .qr-code img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  /* QR 占位（没有真实二维码时显示） */
+  .qr-placeholder {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: repeat(11, 1fr);
+    grid-template-rows: repeat(11, 1fr);
+    gap: 1px;
+  }
+  .qr-placeholder div {
+    background: #0D0C0A;
+    border-radius: 1px;
+  }
+  .qr-placeholder div.w { background: #fff; }
+
+  .url-text {
+    font-size: 18px;
+    font-weight: 500;
+    color: #D4A44C;
+    letter-spacing: 0.1em;
+  }
+
+  .tagline {
+    margin-top: 12px;
+    font-size: 13px;
+    font-weight: 300;
+    color: rgba(184,178,168,0.4);
+    letter-spacing: 0.05em;
+  }
+
+  /* 底部分隔线 */
+  .divider {
+    width: 60px;
+    height: 1px;
+    background: rgba(212,164,76,0.3);
+    margin: 0 auto 20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="poster">
+  <!-- 背景光晕 -->
+  <div class="glow glow-1"></div>
+  <div class="glow glow-2"></div>
+  <div class="glow glow-3"></div>
+
+  <!-- UI 截图背景（用模拟卡片，替换为真实截图时删除 mock 内容） -->
+  <div class="screenshots">
+    <!-- 截图 1：运动员首页 -->
+    <div class="screenshot s1">
+      <div class="screenshot-mock">
+        <div class="mock-bar medium"></div>
+        <div class="mock-card">
+          <div class="mock-circle"></div>
+          <div class="mock-lines"><div class="mock-line"></div><div class="mock-line half"></div></div>
+        </div>
+        <div class="mock-card">
+          <div class="mock-circle"></div>
+          <div class="mock-lines"><div class="mock-line"></div><div class="mock-line half"></div></div>
+        </div>
+        <div class="mock-chart"></div>
+      </div>
+    </div>
+
+    <!-- 截图 2：AI 报告 -->
+    <div class="screenshot s2">
+      <div class="screenshot-mock">
+        <div class="mock-score">8.5</div>
+        <div class="mock-bar short"></div>
+        <div class="mock-tags">
+          <div class="mock-tag">E 轻松跑</div>
+          <div class="mock-tag">T 乳酸阈</div>
+          <div class="mock-tag">I 间歇</div>
+        </div>
+        <div class="mock-bar medium"></div>
+        <div class="mock-bar short"></div>
+      </div>
+    </div>
+
+    <!-- 截图 3：训练日记 -->
+    <div class="screenshot s3">
+      <div class="screenshot-mock">
+        <div class="mock-bar short"></div>
+        <div class="mock-card"><div class="mock-circle"></div><div class="mock-lines"><div class="mock-line"></div><div class="mock-line half"></div></div></div>
+        <div class="mock-card"><div class="mock-circle"></div><div class="mock-lines"><div class="mock-line"></div><div class="mock-line half"></div></div></div>
+        <div class="mock-card"><div class="mock-circle"></div><div class="mock-lines"><div class="mock-line"></div><div class="mock-line half"></div></div></div>
+      </div>
+    </div>
+
+    <!-- 截图 4：教练工作台 -->
+    <div class="screenshot s4">
+      <div class="screenshot-mock">
+        <div class="mock-bar medium"></div>
+        <div class="mock-chart"></div>
+        <div class="mock-card"><div class="mock-circle"></div><div class="mock-lines"><div class="mock-line"></div><div class="mock-line half"></div></div></div>
+        <div class="mock-card"><div class="mock-circle"></div><div class="mock-lines"><div class="mock-line"></div><div class="mock-line half"></div></div></div>
+      </div>
+    </div>
+
+    <!-- 截图 5：体测评估 -->
+    <div class="screenshot s5">
+      <div class="screenshot-mock">
+        <div class="mock-score">VDOT 48.5</div>
+        <div class="mock-tags">
+          <div class="mock-tag">5:30/km</div>
+          <div class="mock-tag">4:45/km</div>
+          <div class="mock-tag">4:25/km</div>
+        </div>
+        <div class="mock-bar medium"></div>
+      </div>
+    </div>
+
+    <!-- 截图 6：计划管理 -->
+    <div class="screenshot s6">
+      <div class="screenshot-mock">
+        <div class="mock-bar short"></div>
+        <div class="mock-card"><div class="mock-lines"><div class="mock-line"></div><div class="mock-line"></div></div></div>
+        <div class="mock-card"><div class="mock-lines"><div class="mock-line"></div><div class="mock-line"></div></div></div>
+        <div class="mock-card"><div class="mock-lines"><div class="mock-line"></div><div class="mock-line"></div></div></div>
+        <div class="mock-card"><div class="mock-lines"><div class="mock-line"></div><div class="mock-line"></div></div></div>
+      </div>
+    </div>
+
+    <!-- 截图 7：登录页 -->
+    <div class="screenshot s7">
+      <div class="screenshot-mock" style="align-items: center; padding: 30px 16px;">
+        <div class="mock-circle" style="width: 48px; height: 48px;"></div>
+        <div class="mock-bar short" style="margin: 8px auto;"></div>
+        <div class="mock-bar medium" style="height: 32px; border-radius: 8px;"></div>
+        <div class="mock-bar medium" style="height: 32px; border-radius: 8px;"></div>
+        <div class="mock-bar short" style="height: 36px; border-radius: 10px; background: rgba(212,164,76,0.25);"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 中央内容 -->
+  <div class="content">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#0D0C0A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+      </svg>
+    </div>
+    <div class="mai-text">
+      M<span>ovement</span> · A<span>nalysis</span> · I<span>ntelligence</span>
+    </div>
+    <div class="slogan">你的训练，脉络清晰</div>
+    <div class="slogan-en">Your Training, Crystal Clear</div>
+  </div>
+
+  <!-- 底部 -->
+  <div class="footer">
+    <div class="divider"></div>
+    <div class="qr-code">
+      <!--
+        替换方式：
+        1. 用草料二维码 (cli.im) 生成 https://maisport.cn 的二维码
+        2. 下载 PNG，命名为 qr.png，放在同目录
+        3. 取消下面 img 标签的注释，删除 qr-placeholder
+      -->
+      <!-- <img src="qr.png" alt="QR Code"> -->
+      <div class="qr-placeholder">
+        <div class="w"></div><div class="w"></div><div class="w"></div><div></div><div class="w"></div><div class="w"></div><div></div><div></div><div class="w"></div><div class="w"></div><div class="w"></div>
+        <div class="w"></div><div></div><div class="w"></div><div></div><div class="w"></div><div></div><div></div><div class="w"></div><div></div><div></div><div class="w"></div>
+        <div class="w"></div><div class="w"></div><div class="w"></div><div></div><div class="w"></div><div></div><div class="w"></div><div></div><div class="w"></div><div class="w"></div><div class="w"></div>
+        <div></div><div></div><div></div><div class="w"></div><div></div><div class="w"></div><div></div><div class="w"></div><div></div><div></div><div></div>
+        <div class="w"></div><div class="w"></div><div></div><div></div><div class="w"></div><div></div><div class="w"></div><div></div><div class="w"></div><div class="w"></div><div></div>
+        <div></div><div class="w"></div><div class="w"></div><div class="w"></div><div></div><div class="w"></div><div></div><div></div><div class="w"></div><div></div><div class="w"></div>
+        <div class="w"></div><div></div><div></div><div></div><div class="w"></div><div></div><div class="w"></div><div class="w"></div><div></div><div class="w"></div><div></div>
+        <div></div><div></div><div class="w"></div><div class="w"></div><div></div><div class="w"></div><div></div><div></div><div class="w"></div><div></div><div class="w"></div>
+        <div class="w"></div><div class="w"></div><div class="w"></div><div></div><div class="w"></div><div></div><div class="w"></div><div class="w"></div><div class="w"></div><div class="w"></div><div></div>
+        <div></div><div></div><div></div><div class="w"></div><div></div><div></div><div></div><div class="w"></div><div></div><div></div><div class="w"></div>
+        <div class="w"></div><div class="w"></div><div class="w"></div><div></div><div class="w"></div><div class="w"></div><div></div><div></div><div class="w"></div><div class="w"></div><div class="w"></div>
+      </div>
+    </div>
+    <div class="url-text">maisport.cn</div>
+    <div class="tagline">AI 驱动的专业运动训练分析平台</div>
+  </div>
+</div>
+
+</body>
+</html>
