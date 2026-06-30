@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>脉 MAI Logo</title>
+<style>
+  body { background: #0D0C0A; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; font-family: 'Outfit', sans-serif; }
+  .wrap { text-align: center; }
+  canvas { display: block; margin: 0 auto 20px; }
+  .btn {
+    display: inline-block; padding: 10px 24px; border-radius: 8px;
+    background: linear-gradient(135deg, #D4A44C, #C08830); color: #0D0C0A;
+    font-size: 14px; font-weight: 600; border: none; cursor: pointer;
+    text-decoration: none;
+  }
+  .btn:hover { opacity: 0.9; }
+  .preview { margin-top: 20px; }
+  .preview img { border-radius: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <canvas id="logo" width="512" height="512"></canvas>
+  <br>
+  <a class="btn" id="download" download="mai-logo.png">下载 PNG (512×512)</a>
+  <div class="preview">
+    <canvas id="logo-dark" width="256" height="256" style="display:inline-block; margin: 10px;"></canvas>
+    <canvas id="logo-light" width="256" height="256" style="display:inline-block; margin: 10px; background: #fff; border-radius: 24px;"></canvas>
+  </div>
+  <p style="color: #666; font-size: 12px; margin-top: 10px;">左：深色背景版 · 右：浅色背景版</p>
+</div>
+
+<script>
+function drawLogo(canvas, bgColor, strokeColor, showGlow) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const h = canvas.height;
+  const cx = w / 2;
+  const cy = h / 2;
+
+  // 背景
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(0, 0, w, h);
+
+  // 圆角矩形背景
+  const boxSize = w * 0.65;
+  const boxX = (w - boxSize) / 2;
+  const boxY = (h - boxSize) / 2;
+  const radius = boxSize * 0.22;
+
+  // 光晕
+  if (showGlow) {
+    const glow = ctx.createRadialGradient(cx, cy, boxSize * 0.2, cx, cy, boxSize * 0.6);
+    glow.addColorStop(0, 'rgba(212,164,76,0.15)');
+    glow.addColorStop(1, 'transparent');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, w, h);
+  }
+
+  // 圆角矩形
+  ctx.beginPath();
+  ctx.moveTo(boxX + radius, boxY);
+  ctx.lineTo(boxX + boxSize - radius, boxY);
+  ctx.quadraticCurveTo(boxX + boxSize, boxY, boxX + boxSize, boxY + radius);
+  ctx.lineTo(boxX + boxSize, boxY + boxSize - radius);
+  ctx.quadraticCurveTo(boxX + boxSize, boxY + boxSize, boxX + boxSize - radius, boxY + boxSize);
+  ctx.lineTo(boxX + radius, boxY + boxSize);
+  ctx.quadraticCurveTo(boxX, boxY + boxSize, boxX, boxY + boxSize - radius);
+  ctx.lineTo(boxX, boxY + radius);
+  ctx.quadraticCurveTo(boxX, boxY, boxX + radius, boxY);
+  ctx.closePath();
+
+  // 渐变填充
+  const grad = ctx.createLinearGradient(boxX, boxY, boxX + boxSize, boxY + boxSize);
+  grad.addColorStop(0, '#D4A44C');
+  grad.addColorStop(1, '#C08830');
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // 心电图线条
+  ctx.strokeStyle = strokeColor;
+  ctx.lineWidth = w * 0.04;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  const scale = boxSize / 28;
+  const offsetX = cx;
+  const offsetY = cy;
+
+  const points = [
+    [2, 12], [6, 12], [9, 3], [15, 21], [18, 12], [22, 12]
+  ].map(([x, y]) => [(x - 12) * scale + offsetX, (y - 12) * scale + offsetY]);
+
+  ctx.beginPath();
+  ctx.moveTo(points[0][0], points[0][1]);
+  for (let i = 1; i < points.length; i++) {
+    ctx.lineTo(points[i][0], points[i][1]);
+  }
+  ctx.stroke();
+}
+
+// 主 Logo (512px, 深色背景)
+const main = document.getElementById('logo');
+drawLogo(main, '#0D0C0A', '#0D0C0A', true);
+
+// 深色背景版 (256px)
+const dark = document.getElementById('logo-dark');
+drawLogo(dark, '#0D0C0A', '#0D0C0A', true);
+
+// 浅色背景版 (256px)
+const light = document.getElementById('logo-light');
+drawLogo(light, '#ffffff', '#ffffff', false);
+
+// 下载功能
+document.getElementById('download').addEventListener('click', function(e) {
+  this.href = main.toDataURL('image/png');
+});
+</script>
+</body>
+</html>
