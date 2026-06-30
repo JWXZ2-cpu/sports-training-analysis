@@ -124,7 +124,7 @@
 .auth-field-label {
     font-size: 13px;
     font-weight: 500;
-    color: #8A8478;
+    color: #B0A898;
     margin-bottom: 8px;
     display: flex;
     align-items: center;
@@ -134,7 +134,7 @@
 .auth-field-label svg {
     width: 14px;
     height: 14px;
-    opacity: 0.6;
+    opacity: 0.8;
 }
 
 .auth-input-wrap {
@@ -282,7 +282,7 @@
 
 .auth-remember-text {
     font-size: 13px;
-    color: #4A4640;
+    color: #8A8478;
 }
 
 .auth-forgot-link {
