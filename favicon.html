@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Favicon Generator</title>
+<style>
+  body { background: #1a1a1a; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; font-family: 'Outfit', sans-serif; }
+  .wrap { text-align: center; }
+  .row { display: flex; gap: 24px; align-items: flex-end; justify-content: center; margin: 16px 0; }
+  .item { text-align: center; }
+  .item canvas { display: block; margin: 0 auto 6px; }
+  .label { color: #888; font-size: 11px; }
+  .btn {
+    display: inline-block; padding: 10px 24px; border-radius: 8px;
+    background: linear-gradient(135deg, #D4A44C, #C08830); color: #0D0C0A;
+    font-size: 14px; font-weight: 600; border: none; cursor: pointer;
+    margin: 6px; text-decoration: none;
+  }
+  h2 { color: #D4A44C; margin-bottom: 24px; }
+  p { color: #666; font-size: 12px; margin-top: 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h2>脉 MAI Favicon</h2>
+
+  <div class="row">
+    <div class="item">
+      <canvas id="c16" width="16" height="16" style="image-rendering: pixelated; width: 32px; height: 32px;"></canvas>
+      <div class="label">16×16</div>
+    </div>
+    <div class="item">
+      <canvas id="c32" width="32" height="32" style="image-rendering: pixelated; width: 48px; height: 48px;"></canvas>
+      <div class="label">32×32</div>
+    </div>
+    <div class="item">
+      <canvas id="c48" width="48" height="48" style="image-rendering: pixelated; width: 64px; height: 64px;"></canvas>
+      <div class="label">48×48</div>
+    </div>
+    <div class="item">
+      <canvas id="c180" width="180" height="180" style="width: 120px; height: 120px;"></canvas>
+      <div class="label">180×180 (Apple)</div>
+    </div>
+    <div class="item">
+      <canvas id="c512" width="512" height="512" style="width: 140px; height: 140px;"></canvas>
+      <div class="label">512×512 (PWA)</div>
+    </div>
+  </div>
+
+  <div style="margin-top: 24px;">
+    <a class="btn" id="dl16" download="favicon-16.png">16px</a>
+    <a class="btn" id="dl32" download="favicon-32.png">32px</a>
+    <a class="btn" id="dl48" download="favicon-48.png">48px</a>
+    <a class="btn" id="dl180" download="apple-touch-icon.png">180px</a>
+    <a class="btn" id="dl512" download="favicon-512.png">512px</a>
+  </div>
+
+  <p>圆角矩形 · 金色渐变 · 心电图 Logo</p>
+</div>
+
+<script>
+function drawFavicon(canvas) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const h = canvas.height;
+  const cx = w / 2;
+  const cy = h / 2;
+
+  // 透明背景
+  ctx.clearRect(0, 0, w, h);
+
+  // 圆角矩形
+  const padding = w * 0.06;
+  const boxSize = w - padding * 2;
+  const radius = boxSize * 0.22;
+
+  ctx.beginPath();
+  ctx.moveTo(padding + radius, padding);
+  ctx.lineTo(padding + boxSize - radius, padding);
+  ctx.quadraticCurveTo(padding + boxSize, padding, padding + boxSize, padding + radius);
+  ctx.lineTo(padding + boxSize, padding + boxSize - radius);
+  ctx.quadraticCurveTo(padding + boxSize, padding + boxSize, padding + boxSize - radius, padding + boxSize);
+  ctx.lineTo(padding + radius, padding + boxSize);
+  ctx.quadraticCurveTo(padding, padding + boxSize, padding, padding + boxSize - radius);
+  ctx.lineTo(padding, padding + radius);
+  ctx.quadraticCurveTo(padding, padding, padding + radius, padding);
+  ctx.closePath();
+
+  // 金色渐变
+  const grad = ctx.createLinearGradient(0, 0, w, h);
+  grad.addColorStop(0, '#D4A44C');
+  grad.addColorStop(1, '#C08830');
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // 心电图
+  ctx.strokeStyle = '#0D0C0A';
+  ctx.lineWidth = Math.max(2, w * 0.045);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  const scale = boxSize / 28;
+  const points = [
+    [2, 12], [6, 12], [9, 3], [15, 21], [18, 12], [22, 12]
+  ].map(([x, y]) => [(x - 12) * scale + cx, (y - 12) * scale + cy]);
+
+  ctx.beginPath();
+  ctx.moveTo(points[0][0], points[0][1]);
+  for (let i = 1; i < points.length; i++) {
+    ctx.lineTo(points[i][0], points[i][1]);
+  }
+  ctx.stroke();
+}
+
+// 绘制所有尺寸
+const sizes = [16, 32, 48, 180, 512];
+sizes.forEach(s => {
+  const canvas = document.getElementById('c' + s);
+  drawFavicon(canvas);
+  document.getElementById('dl' + s).href = canvas.toDataURL('image/png');
+});
+</script>
+</body>
+</html>
