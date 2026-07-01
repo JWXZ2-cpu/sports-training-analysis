@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sigma 产品解剖 — 深度竞品分析</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0D0C0A;
+    --surface: #171613;
+    --card: #1F1E19;
+    --accent: #D4A44C;
+    --accent-dim: rgba(212,164,76,0.10);
+    --text: #F0EBE0;
+    --text-secondary: #B8B2A8;
+    --text-dim: #8A8478;
+    --green: #6BBF6E;
+    --amber: #E8A849;
+    --red: #D45C5C;
+    --blue: #5C9FD4;
+    --border: rgba(255,255,255,0.06);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans SC', 'Outfit', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.8;
+    font-size: 14px;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 24px;
+  }
+
+  .header {
+    text-align: center;
+    padding: 60px 0 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+  .header .logo {
+    width: 60px; height: 60px; border-radius: 18px;
+    background: linear-gradient(135deg, var(--accent), #C08830);
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-bottom: 16px;
+  }
+  .header .logo svg { width: 28px; height: 28px; }
+  .header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+  .header .subtitle { font-size: 14px; color: var(--text-secondary); }
+
+  h2 {
+    font-size: 22px; font-weight: 700; color: var(--accent);
+    margin: 48px 0 20px; padding-bottom: 10px;
+    border-bottom: 2px solid var(--accent-dim);
+  }
+  h3 {
+    font-size: 18px; font-weight: 600; color: var(--text);
+    margin: 36px 0 16px;
+  }
+
+  p { margin-bottom: 12px; color: var(--text-secondary); }
+  strong { color: var(--text); font-weight: 600; }
+
+  ul, ol { margin-bottom: 12px; padding-left: 24px; color: var(--text-secondary); }
+  li { margin-bottom: 6px; }
+
+  table {
+    width: 100%; border-collapse: collapse; margin: 16px 0;
+    font-size: 13px;
+  }
+  th {
+    background: rgba(212,164,76,0.08);
+    color: var(--accent); font-weight: 600;
+    padding: 10px 14px; text-align: left;
+    border-bottom: 2px solid var(--accent-dim);
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+  }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  blockquote {
+    border-left: 3px solid var(--accent);
+    padding: 12px 20px;
+    margin: 16px 0;
+    background: var(--accent-dim);
+    border-radius: 0 8px 8px 0;
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+
+  code {
+    background: rgba(255,255,255,0.06);
+    padding: 2px 6px; border-radius: 4px;
+    font-family: 'Outfit', monospace; font-size: 12px;
+  }
+
+  hr {
+    border: none; border-top: 1px solid var(--border);
+    margin: 32px 0;
+  }
+
+  .highlight {
+    background: var(--accent-dim);
+    border: 1px solid rgba(212,164,76,0.2);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 16px 0;
+  }
+  .highlight p { margin: 0; color: var(--text); }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 16px 0;
+  }
+
+  .flow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin: 20px 0;
+  }
+  .flow-step {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 20px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-align: center;
+    min-width: 200px;
+  }
+  .flow-arrow {
+    color: var(--accent);
+    font-size: 18px;
+  }
+
+  .vs-table td:first-child { font-weight: 600; color: var(--text); }
+  .vs-table .sigma { color: var(--blue); }
+  .vs-table .mai { color: var(--accent); }
+
+  .quadrant {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 20px 0;
+  }
+  .quadrant-cell {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  .quadrant-cell.active {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+  .quadrant-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+  .quadrant-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .quadrant-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  .toc {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 40px;
+  }
+  .toc h2 { font-size: 16px; margin: 0 0 16px; border: none; padding: 0; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin-bottom: 6px; }
+  .toc a { color: var(--text-secondary); text-decoration: none; font-size: 13px; }
+  .toc a:hover { color: var(--accent); }
+
+  @media print {
+    body { background: #fff; color: #222; font-size: 11pt; }
+    .container { max-width: 100%; padding: 0; }
+    .card, .highlight, .toc { break-inside: avoid; }
+    h2 { break-after: avoid; }
+    h3 { break-after: avoid; }
+    table { font-size: 10pt; }
+    th { background: #f5f5f5; color: #333; }
+    td { color: #444; border-color: #ddd; }
+    strong { color: #000; }
+    p, li { color: #444; }
+    blockquote { border-left-color: #D4A44C; background: #faf6ee; color: #444; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#0D0C0A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+    </svg>
+  </div>
+  <h1>Sigma 产品解剖</h1>
+  <div class="subtitle">深度竞品分析：Sigma vs MAI · Product Teardown</div>
+</div>
+
+<div class="toc">
+  <h2>目录</h2>
+  <ol>
+    <li><a href="#s1">一句话定义</a></li>
+    <li><a href="#s2">产品战略：Why Sigma Exists</a></li>
+    <li><a href="#s3">用户画像与核心场景</a></li>
+    <li><a href="#s4">北极星指标与增长飞轮</a></li>
+    <li><a href="#s5">AI 在产品中的角色定位</a></li>
+    <li><a href="#s6">信息架构与核心交互路径</a></li>
+    <li><a href="#s7">商业模式与竞争壁垒</a></li>
+    <li><a href="#s8">产品边界与未覆盖需求</a></li>
+    <li><a href="#s9">MAI 的切入机会：Why MAI</a></li>
+    <li><a href="#s10">竞品矩阵</a></li>
+    <li><a href="#s11">对 MAI 产品设计的启示</a></li>
+    <li><a href="#s12">面试表达建议</a></li>
+  </ol>
+</div>
+
+<!-- ==================== 一 ==================== -->
+<h2 id="s1">一、一句话定义</h2>
+
+<div class="highlight">
+<p><strong>Sigma 是一个以 AI 为核心、围绕「个人跑者」构建的跑步记录与陪伴产品。</strong></p>
+</div>
+
+<p>注意三个关键词：</p>
+<ul>
+  <li><strong>AI 为核心</strong>：不是"有 AI 功能"，而是"AI 是产品体验的底层"</li>
+  <li><strong>个人跑者</strong>：只有一个用户角色，不是团队</li>
+  <li><strong>陪伴</strong>：卖的不是训练系统，是情绪价值</li>
+</ul>
+
+<hr>
+
+<!-- ==================== 二 ==================== -->
+<h2 id="s2">二、产品战略：Why Sigma Exists</h2>
+
+<h3>2.1 Sigma 的产品假设</h3>
+<blockquote>一个跑者，只要有数据，就能获得更好的训练建议。</blockquote>
+<p>所以 Sigma 重点做的是：数据记录、AI 分析、AI 训练计划、跑步体验、仪式感。</p>
+
+<h3>2.2 Sigma 真正卖的是什么</h3>
+<div class="card">
+<p>Sigma 官网和 App Store 强调的关键词：</p>
+<p style="color:var(--text); font-weight:500;">真正懂你 · 仪式感 · AI 伙伴 · 回忆 · 地图日记 · 跑步人格</p>
+<p>而不是：</p>
+<p style="color:var(--text-dim);">训练负荷 · 乳酸阈 · 训练周期 · 伤病预测 · ACWR</p>
+<p><strong>结论：Sigma 真正卖的是陪伴感，不是训练系统。</strong></p>
+</div>
+
+<h3>2.3 产品战略：AI First, Emotion Driven</h3>
+<p>Sigma 的更新日志几乎都是：地图日记、跑步人格、跑量赛、分享卡片、跑后长图、Sig 聊天。</p>
+<p>很少出现：VO2max 预测、疲劳模型、训练周期优化、恢复指数。</p>
+<div class="highlight">
+<p><strong>AI 只是手段，情绪价值才是产品。</strong></p>
+</div>
+
+<hr>
+
+<!-- ==================== 三 ==================== -->
+<h2 id="s3">三、用户画像与核心场景</h2>
+
+<table class="vs-table">
+  <tr><th>维度</th><th>Sigma</th><th>MAI</th></tr>
+  <tr><td>身份</td><td class="sigma">业余跑者</td><td class="mai">专业运动队成员</td></tr>
+  <tr><td>角色</td><td class="sigma">1 个（跑者）</td><td class="mai">5 个（运动员、教练、助教、队医、管理）</td></tr>
+  <tr><td>核心诉求</td><td class="sigma">坚持跑步、获得陪伴</td><td class="mai">提升训练质量、团队协同</td></tr>
+  <tr><td>痛点</td><td class="sigma">孤独、缺乏动力</td><td class="mai">信息不对称、决策缺乏数据支撑</td></tr>
+  <tr><td>使用场景</td><td class="sigma">个人跑步</td><td class="mai">团队训练管理</td></tr>
+</table>
+
+<hr>
+
+<!-- ==================== 四 ==================== -->
+<h2 id="s4">四、北极星指标与增长飞轮</h2>
+
+<h3>Sigma 的增长飞轮</h3>
+<div class="flow">
+  <div class="flow-step">🏃 跑步</div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step">📱 记录（GPS、轨迹、配速、心率）</div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step">🤖 AI 分析（个性化报告、跑步人格）</div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step">📤 分享（地图日记、跑后长图、跑量赛）</div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step">💬 获得反馈（点赞、评论、排名）</div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step">🏃 继续跑（动力增强）</div>
+</div>
+<p><strong>关键洞察</strong>：Sigma 飞轮的核心驱动力是<strong>社交反馈 + 情感连接</strong>，不是训练效果。</p>
+
+<h3>MAI 的增长飞轮</h3>
+<div class="flow">
+  <div class="flow-step">🗣️ 运动员反馈（语音/文字）</div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step">🤖 AI 分析（双视角报告）</div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step">📋 教练调整训练计划</div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step">📈 训练效果更好</div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step">🗣️ 运动员更愿意反馈</div>
+</div>
+<p><strong>关键区别</strong>：MAI 飞轮靠<strong>效果驱动</strong>，Sigma 靠<strong>情感驱动</strong>。</p>
+
+<hr>
+
+<!-- ==================== 五 ==================== -->
+<h2 id="s5">五、AI 在产品中的角色定位</h2>
+
+<table class="vs-table">
+  <tr><th>维度</th><th>Sigma</th><th>MAI</th></tr>
+  <tr><td>AI 的角色</td><td class="sigma">陪伴伙伴</td><td class="mai">决策助手</td></tr>
+  <tr><td>AI 的目标</td><td class="sigma">让用户继续跑</td><td class="mai">让教练做出更好的决策</td></tr>
+  <tr><td>AI 的输出</td><td class="sigma">鼓励、陪伴、个性化</td><td class="mai">分析、预警、建议</td></tr>
+  <tr><td>AI 的衡量</td><td class="sigma">用户留存、使用时长</td><td class="mai">教练采纳率、训练效果</td></tr>
+  <tr><td>AI 的学习</td><td class="sigma">越跑越懂你</td><td class="mai">越分析越准确</td></tr>
+</table>
+
+<hr>
+
+<!-- ==================== 六 ==================== -->
+<h2 id="s6">六、信息架构与核心交互路径</h2>
+
+<table class="vs-table">
+  <tr><th>维度</th><th>Sigma</th><th>MAI</th></tr>
+  <tr><td>用户角色</td><td class="sigma">1 个</td><td class="mai">5 个</td></tr>
+  <tr><td>信息流向</td><td class="sigma">单向（AI → 用户）</td><td class="mai">多向（运动员 ↔ 教练 ↔ 队医）</td></tr>
+  <tr><td>权限模型</td><td class="sigma">无</td><td class="mai">RBAC 角色权限</td></tr>
+  <tr><td>数据隔离</td><td class="sigma">无（个人数据）</td><td class="mai">有（团队隔离）</td></tr>
+</table>
+
+<hr>
+
+<!-- ==================== 七 ==================== -->
+<h2 id="s7">七、商业模式与竞争壁垒</h2>
+
+<h3>Sigma 的竞争壁垒</h3>
+<table>
+  <tr><th>壁垒</th><th>说明</th></tr>
+  <tr><td><strong>长期跑步历史数据</strong></td><td>"越跑越聪明"就是壁垒</td></tr>
+  <tr><td><strong>情感设计</strong></td><td>地图日记、跑步人格、跑量赛 — Retention Design</td></tr>
+  <tr><td><strong>设计感</strong></td><td>克制、简洁、Apple 风格 — 设计本身就是竞争力</td></tr>
+</table>
+
+<h3>MAI 的竞争壁垒</h3>
+<table>
+  <tr><th>壁垒</th><th>说明</th></tr>
+  <tr><td><strong>多角色协同数据</strong></td><td>反馈 + 医疗 + 心理的综合数据</td></tr>
+  <tr><td><strong>组织网络效应</strong></td><td>教练-运动员-队医的组织绑定</td></tr>
+  <tr><td><strong>团队切换成本</strong></td><td>团队迁移成本高</td></tr>
+</table>
+
+<hr>
+
+<!-- ==================== 八 ==================== -->
+<h2 id="s8">八、产品边界与未覆盖需求</h2>
+
+<h3>Sigma 的产品边界</h3>
+<div class="card">
+  <p><strong>边界一：只有一个用户</strong> — 跑者。没有教练、队医、团队。</p>
+  <p><strong>边界二：AI 只能建议</strong> — 不能修改训练计划、不能通知教练、不能同步队医。</p>
+  <p><strong>边界三：缺少组织协同</strong> — 没有 RBAC、团队、审批、权限、训练计划流转。</p>
+</div>
+
+<h3>未覆盖的需求</h3>
+<table>
+  <tr><th>需求</th><th>Sigma</th><th>MAI</th></tr>
+  <tr><td>教练看到运动员真实状态</td><td style="color:var(--red)">❌</td><td style="color:var(--green)">✅ 双视角报告</td></tr>
+  <tr><td>队医知道训练安排</td><td style="color:var(--red)">❌</td><td style="color:var(--green)">✅ 冲突检测</td></tr>
+  <tr><td>治疗与训练冲突检测</td><td style="color:var(--red)">❌</td><td style="color:var(--green)">✅ 自动比对</td></tr>
+  <tr><td>运动员心理状态分析</td><td style="color:var(--red)">❌</td><td style="color:var(--green)">✅ 运动心理学</td></tr>
+  <tr><td>多角色信息分级</td><td style="color:var(--red)">❌</td><td style="color:var(--green)">✅ 5 角色隔离</td></tr>
+  <tr><td>团队训练计划管理</td><td style="color:var(--red)">❌</td><td style="color:var(--green)">✅ 周视图管理</td></tr>
+</table>
+
+<hr>
+
+<!-- ==================== 九 ==================== -->
+<h2 id="s9">九、MAI 的切入机会：Why MAI</h2>
+
+<h3>市场定位</h3>
+<div class="quadrant">
+  <div class="quadrant-cell">
+    <div class="quadrant-label">个人 + 决策</div>
+    <div class="quadrant-name">AI 跑步教练</div>
+    <div class="quadrant-desc">各种 AI 训练 App</div>
+  </div>
+  <div class="quadrant-cell active">
+    <div class="quadrant-label">团队 + 决策</div>
+    <div class="quadrant-name">MAI</div>
+    <div class="quadrant-desc">团队训练决策支持</div>
+  </div>
+  <div class="quadrant-cell">
+    <div class="quadrant-label">个人 + 记录</div>
+    <div class="quadrant-name">Sigma</div>
+    <div class="quadrant-desc">AI 跑步陪伴</div>
+  </div>
+  <div class="quadrant-cell">
+    <div class="quadrant-label">团队 + 记录</div>
+    <div class="quadrant-name">TrainingPeaks</div>
+    <div class="quadrant-desc">传统训练管理</div>
+  </div>
+</div>
+
+<h3>一句话概括</h3>
+<div class="highlight">
+<p>Sigma 解决的是「一个人如何长期坚持跑步」；MAI 解决的是「一支专业运动队如何基于 AI 做出更科学的训练决策」。<strong>这是产品定位的本质区别，而不是功能多少的区别。</strong></p>
+</div>
+
+<hr>
+
+<!-- ==================== 十 ==================== -->
+<h2 id="s10">十、竞品矩阵</h2>
+
+<table>
+  <tr><th>维度</th><th>Sigma</th><th>Strava</th><th>TrainingPeaks</th><th>Garmin Connect</th><th>MAI</th></tr>
+  <tr><td>定位</td><td>AI 跑步陪伴</td><td>运动社交</td><td>专业训练管理</td><td>设备数据平台</td><td>团队训练决策</td></tr>
+  <tr><td>用户</td><td>个人跑者</td><td>运动爱好者</td><td>教练+运动员</td><td>设备用户</td><td>专业运动队</td></tr>
+  <tr><td>AI 角色</td><td>陪伴伙伴</td><td>无</td><td>无</td><td>数据展示</td><td>决策助手</td></tr>
+  <tr><td>多角色</td><td style="color:var(--red)">❌</td><td style="color:var(--red)">❌</td><td style="color:var(--green)">✅</td><td style="color:var(--red)">❌</td><td style="color:var(--green)">✅ 5角色</td></tr>
+  <tr><td>团队协同</td><td style="color:var(--red)">❌</td><td style="color:var(--red)">❌</td><td>部分</td><td style="color:var(--red)">❌</td><td style="color:var(--green)">✅</td></tr>
+  <tr><td>语音输入</td><td style="color:var(--red)">❌</td><td style="color:var(--red)">❌</td><td style="color:var(--red)">❌</td><td style="color:var(--red)">❌</td><td style="color:var(--green)">✅</td></tr>
+  <tr><td>双视角</td><td style="color:var(--red)">❌</td><td style="color:var(--red)">❌</td><td style="color:var(--red)">❌</td><td style="color:var(--red)">❌</td><td style="color:var(--green)">✅</td></tr>
+  <tr><td>冲突检测</td><td style="color:var(--red)">❌</td><td style="color:var(--red)">❌</td><td style="color:var(--red)">❌</td><td style="color:var(--red)">❌</td><td style="color:var(--green)">✅</td></tr>
+  <tr><td>心理分析</td><td style="color:var(--red)">❌</td><td style="color:var(--red)">❌</td><td style="color:var(--red)">❌</td><td style="color:var(--red)">❌</td><td style="color:var(--green)">✅</td></tr>
+  <tr><td>增长驱动</td><td>情感+社交</td><td>社交网络</td><td>教练推荐</td><td>设备绑定</td><td>效果驱动</td></tr>
+</table>
+
+<hr>
+
+<!-- ==================== 十一 ==================== -->
+<h2 id="s11">十一、对 MAI 产品设计的启示</h2>
+
+<h3>可以学习 Sigma 的</h3>
+<table>
+  <tr><th>方面</th><th>Sigma 的做法</th><th>MAI 可以借鉴</th></tr>
+  <tr><td>情感化设计</td><td>地图日记、跑步人格</td><td>运动员端训练日记增加情感化元素</td></tr>
+  <tr><td>仪式感</td><td>跑后长图、回忆功能</td><td>训练完成后的成就感展示</td></tr>
+  <tr><td>设计克制</td><td>少按钮、简洁界面</td><td>保持暗色主题 + 极简设计</td></tr>
+</table>
+
+<h3>不应该学习 Sigma 的</h3>
+<table>
+  <tr><th>方面</th><th>Sigma 的做法</th><th>MAI 不应该做</th></tr>
+  <tr><td>社交功能</td><td>跑友圈、排行榜</td><td>运动员社交会分散注意力</td></tr>
+  <tr><td>情绪价值优先</td><td>陪伴 > 分析</td><td>专业队需要决策支持，不是陪伴</td></tr>
+  <tr><td>单用户设计</td><td>只有跑者</td><td>必须保持多角色协同</td></tr>
+</table>
+
+<hr>
+
+<!-- ==================== 十二 ==================== -->
+<h2 id="s12">十二、面试表达建议</h2>
+
+<h3>1 分钟版本</h3>
+<div class="highlight">
+<p>"我分析了 Sigma，它是一个非常优秀的 AI 跑步陪伴产品。它的核心假设是'一个跑者只要有数据就能获得更好的建议'，所以它重点做的是记录、AI 分析、情感设计和社交激励。</p>
+<p>但 Sigma 的产品边界很清晰：只有一个用户角色，AI 只能建议不能参与训练流程，缺少组织协同。</p>
+<p>而我做的 MAI 解决的是另一类问题：在专业运动队里，真正的问题不是'不会跑'，而是'信息无法流动'。所以 MAI 做的是多角色协同和 AI 决策支持。这不是功能多少的区别，是产品定位的本质区别。"</p>
+</div>
+
+<h3>关键金句</h3>
+<div class="card">
+  <ul>
+    <li>"Sigma 卖的是陪伴感，MAI 卖的是决策支持"</li>
+    <li>"AI 只是手段，情绪价值才是产品"（Sigma 的逻辑）</li>
+    <li>"AI 只是连接器，信息流转才是价值"（MAI 的逻辑）</li>
+    <li>"不是要做一个比 Sigma 更好的跑步 App，而是解决另一类用户尚未被满足的需求"</li>
+  </ul>
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>脉 MAI — PM 面试 STAR 素材库</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0D0C0A;
+    --surface: #171613;
+    --card: #1F1E19;
+    --accent: #D4A44C;
+    --accent-dim: rgba(212,164,76,0.10);
+    --text: #F0EBE0;
+    --text-secondary: #B8B2A8;
+    --text-dim: #8A8478;
+    --green: #6BBF6E;
+    --amber: #E8A849;
+    --red: #D45C5C;
+    --blue: #5C9FD4;
+    --border: rgba(255,255,255,0.06);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans SC', 'Outfit', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.8;
+    font-size: 14px;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 24px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 60px 0 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+  .header .logo {
+    width: 60px; height: 60px; border-radius: 18px;
+    background: linear-gradient(135deg, var(--accent), #C08830);
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-bottom: 16px;
+  }
+  .header .logo svg { width: 28px; height: 28px; }
+  .header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+  .header .subtitle { font-size: 14px; color: var(--text-secondary); }
+
+  /* TOC */
+  .toc {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 40px;
+  }
+  .toc h2 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: var(--accent); }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin-bottom: 6px; }
+  .toc a { color: var(--text-secondary); text-decoration: none; font-size: 13px; }
+  .toc a:hover { color: var(--accent); }
+
+  /* Headings */
+  h2 {
+    font-size: 22px; font-weight: 700; color: var(--accent);
+    margin: 48px 0 20px; padding-bottom: 10px;
+    border-bottom: 2px solid var(--accent-dim);
+  }
+  h3 {
+    font-size: 18px; font-weight: 600; color: var(--text);
+    margin: 36px 0 16px;
+  }
+
+  /* Paragraphs */
+  p { margin-bottom: 12px; color: var(--text-secondary); }
+  strong { color: var(--text); font-weight: 600; }
+
+  /* Lists */
+  ul, ol { margin-bottom: 12px; padding-left: 24px; color: var(--text-secondary); }
+  li { margin-bottom: 6px; }
+
+  /* Tables */
+  table {
+    width: 100%; border-collapse: collapse; margin: 16px 0;
+    font-size: 13px;
+  }
+  th {
+    background: rgba(212,164,76,0.08);
+    color: var(--accent); font-weight: 600;
+    padding: 10px 14px; text-align: left;
+    border-bottom: 2px solid var(--accent-dim);
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+  }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* STAR cards */
+  .star-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .star-label {
+    display: inline-block;
+    font-size: 11px; font-weight: 600;
+    padding: 3px 10px; border-radius: 6px;
+    margin-bottom: 8px; text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .star-s { background: rgba(92,159,212,0.12); color: var(--blue); }
+  .star-t { background: rgba(232,168,73,0.12); color: var(--amber); }
+  .star-a { background: rgba(107,191,110,0.12); color: var(--green); }
+  .star-r { background: rgba(212,164,76,0.12); color: var(--accent); }
+
+  .star-content {
+    font-size: 13px; color: var(--text-secondary); line-height: 1.8;
+  }
+  .star-content strong { color: var(--text); }
+
+  /* Blockquote */
+  blockquote {
+    border-left: 3px solid var(--accent);
+    padding: 12px 20px;
+    margin: 16px 0;
+    background: var(--accent-dim);
+    border-radius: 0 8px 8px 0;
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+
+  /* Code */
+  code {
+    background: rgba(255,255,255,0.06);
+    padding: 2px 6px; border-radius: 4px;
+    font-family: 'Outfit', monospace; font-size: 12px;
+  }
+
+  /* Divider */
+  hr {
+    border: none; border-top: 1px solid var(--border);
+    margin: 32px 0;
+  }
+
+  /* Highlight box */
+  .highlight {
+    background: var(--accent-dim);
+    border: 1px solid rgba(212,164,76,0.2);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 16px 0;
+  }
+  .highlight p { margin: 0; color: var(--text); }
+
+  /* Print styles */
+  @media print {
+    body { background: #fff; color: #222; font-size: 11pt; }
+    .container { max-width: 100%; padding: 0; }
+    .header { padding: 20px 0; }
+    .star-card, .toc, .highlight { break-inside: avoid; }
+    h2 { break-after: avoid; }
+    h3 { break-after: avoid; }
+    table { font-size: 10pt; }
+    th { background: #f5f5f5; color: #333; }
+    td { color: #444; border-color: #ddd; }
+    strong { color: #000; }
+    p, li { color: #444; }
+    blockquote { border-left-color: #D4A44C; background: #faf6ee; color: #444; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#0D0C0A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+    </svg>
+  </div>
+  <h1>PM 面试 STAR 素材库</h1>
+  <div class="subtitle">脉 MAI — AI 运动训练分析平台 · 30 个高频面试问题</div>
+</div>
+
+<div class="toc">
+  <h2>目录</h2>
+  <ol>
+    <li><a href="#q1">为什么做这个产品？</a></li>
+    <li><a href="#q2">目标用户是谁？怎么细分的？</a></li>
+    <li><a href="#q3">最大的产品创新是什么？</a></li>
+    <li><a href="#q4">双视角 AI 报告怎么设计的？</a></li>
+    <li><a href="#q5">医训冲突检测怎么想到的？</a></li>
+    <li><a href="#q6">为什么选择语音输入？</a></li>
+    <li><a href="#q7">语音输入技术挑战？</a></li>
+    <li><a href="#q8">怎么决定产品优先级？</a></li>
+    <li><a href="#q9">上线后数据表现？</a></li>
+    <li><a href="#q10">体测完成率没达标？</a></li>
+    <li><a href="#q11">冲突检查使用率没达标？</a></li>
+    <li><a href="#q12">为什么选择 VDOT？</a></li>
+    <li><a href="#q13">多团队隔离怎么设计的？</a></li>
+    <li><a href="#q14">三语国际化怎么做的？</a></li>
+    <li><a href="#q15">AI prompt 怎么设计的？</a></li>
+    <li><a href="#q16">AI 分析超时怎么解决？</a></li>
+    <li><a href="#q17">运动员不愿意用语音？</a></li>
+    <li><a href="#q18">怎么验证"双视角"？</a></li>
+    <li><a href="#q19">最大的失败是什么？</a></li>
+    <li><a href="#q20">最大的取舍是什么？</a></li>
+    <li><a href="#q21">AI 建议 vs 教练权威？</a></li>
+    <li><a href="#q22">为什么不做原生 App？</a></li>
+    <li><a href="#q23">怎么做用户调研？</a></li>
+    <li><a href="#q24">怎么设计指标体系？</a></li>
+    <li><a href="#q25">如果重新做会改变什么？</a></li>
+    <li><a href="#q26">和工程师怎么协作？</a></li>
+    <li><a href="#q27">怎么做竞品分析？</a></li>
+    <li><a href="#q28">怎么处理功能膨胀？</a></li>
+    <li><a href="#q29">对 AI 在体育领域的看法？</a></li>
+    <li><a href="#q30">最自豪的是什么？</a></li>
+  </ol>
+</div>
+
+<!-- ==================== 项目概述 ==================== -->
+<h2>一、项目概述</h2>
+
+<div class="highlight">
+<p><strong>一句话定位</strong>：脉是一套面向专业运动队的 AI 训练分析平台，通过"语音反馈 → AI 分析 → 角色化分发"，帮助教练团队用数据驱动训练决策。</p>
+</div>
+
+<p><strong>核心数据</strong>：</p>
+<ul>
+  <li>覆盖 5 个角色（运动员、主教练、助教、队医、管理人员）</li>
+  <li>支持 3 语（中/英/意）</li>
+  <li>31 个页面、20 个共享组件、16 张数据表</li>
+</ul>
+
+<p><strong>三大创新</strong>：</p>
+<ol>
+  <li><strong>双视角 AI 报告</strong>：运动员看到训练日记，教练看到专业分析</li>
+  <li><strong>医训冲突检测</strong>：队医治疗计划与次日训练计划自动交叉比对</li>
+  <li><strong>语音结构化反馈</strong>：运动员语音输入 → AI 自动解析为结构化数据</li>
+</ol>
+
+<hr>
+
+<!-- ==================== Q1 ==================== -->
+<h2>二、高频面试问题</h2>
+
+<h3 id="q1">Q1：为什么做这个产品？</h3>
+<div class="star-card">
+  <div><span class="star-label star-s">S 情境</span></div>
+  <div class="star-content">我接触了多支专业运动队（田径中长跑为主），发现教练团队的训练管理高度依赖口头沟通和纸质记录。</div>
+  <br>
+  <div><span class="star-label star-t">T 任务</span></div>
+  <div class="star-content">需要找到训练管理中最核心的痛点，判断是否值得用产品化方式解决。</div>
+  <br>
+  <div><span class="star-label star-a">A 行动</span></div>
+  <div class="star-content">
+    <ul>
+      <li>跟队观察 2 周，记录教练、运动员、队医的日常工作流</li>
+      <li>深度访谈 5 位教练、8 位运动员、2 位队医</li>
+      <li>梳理出 5 个核心痛点，按"影响范围 × 严重程度"排序</li>
+    </ul>
+  </div>
+  <br>
+  <div><span class="star-label star-r">R 结果</span></div>
+  <div class="star-content">
+    <ul>
+      <li>定位了第一优先级痛点：<strong>训练反馈丢失在口头对话中</strong></li>
+      <li>运动员每天说的"膝盖有点酸""最后两组掉速"从未被记录</li>
+      <li>决定以"语音反馈 → AI 结构化"作为产品切入点</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== Q2 ==================== -->
+<h3 id="q2">Q2：目标用户是谁？怎么细分的？</h3>
+<div class="star-card">
+  <div><span class="star-label star-s">S</span></div>
+  <div class="star-content">运动队里有 5 种角色，需求差异很大。</div>
+  <br>
+  <div><span class="star-label star-t">T</span></div>
+  <div class="star-content">需要找到核心用户和关键用户，避免"所有人都想服务等于所有人都服务不好"。</div>
+  <br>
+  <div><span class="star-label star-a">A</span></div>
+  <div class="star-content">
+    <ul>
+      <li>按"决策权 × 使用频率"画 2×2 矩阵</li>
+      <li>主教练：决策权高、使用频率高 → <strong>核心用户</strong></li>
+      <li>运动员：决策权低、使用频率高 → <strong>关键用户</strong>（数据来源）</li>
+      <li>队医：决策权中、使用频率中 → <strong>协同用户</strong></li>
+      <li>助教/管理人员：决策权低、使用频率低 → <strong>辅助用户</strong></li>
+    </ul>
+  </div>
+  <br>
+  <div><span class="star-label star-r">R</span></div>
+  <div class="star-content">
+    <ul>
+      <li>产品设计以主教练视角为第一优先级</li>
+      <li>运动员端以"降低输入门槛"为核心设计原则</li>
+      <li>队医端以"医训协同"为差异化价值</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== Q3 ==================== -->
+<h3 id="q3">Q3：最大的产品创新是什么？为什么别人没有做？</h3>
+<div class="star-card">
+  <div><span class="star-label star-s">S</span></div>
+  <div class="star-content">市面上的运动训练管理系统（TrainingPeaks、FinalSurge、悦跑圈）都是单视角——所有人看到同样的数据。</div>
+  <br>
+  <div><span class="star-label star-t">T</span></div>
+  <div class="star-content">需要找到差异化切入点，不能做一个"更好的 TrainingPeaks"。</div>
+  <br>
+  <div><span class="star-label star-a">A</span></div>
+  <div class="star-content">
+    <p>洞察到一个核心矛盾：</p>
+    <ul>
+      <li>教练需要看到专业分析（ACWR、VDOT、心理状态评估）才能做决策</li>
+      <li>但运动员看到这些专业数据后，可能产生"AI 比教练还懂"的信任危机</li>
+      <li>运动员需要的是被关心，不是被分析</li>
+    </ul>
+  </div>
+  <br>
+  <div><span class="star-label star-r">R</span></div>
+  <div class="star-content">
+    <p>设计了<strong>双视角 AI 报告</strong>：同一份数据生成两份报告</p>
+    <ul>
+      <li>运动员端：训练日记（事实记录 + 鼓励 + 关怀）</li>
+      <li>教练端：战术分析（专业评估 + 风险预警 + 决策建议）</li>
+    </ul>
+    <p>这是市场上的空白点，竞品都没有做。</p>
+  </div>
+</div>
+
+<!-- ==================== Q4 ==================== -->
+<h3 id="q4">Q4：双视角 AI 报告具体怎么设计的？</h3>
+<div class="star-card">
+  <div><span class="star-label star-s">S</span></div>
+  <div class="star-content">确定了双视角方向后，需要设计具体的输出结构和 AI prompt。</div>
+  <br>
+  <div><span class="star-label star-t">T</span></div>
+  <div class="star-content">让 AI 对同一份输入数据生成两份风格、内容、深度完全不同的报告。</div>
+  <br>
+  <div><span class="star-label star-a">A</span></div>
+  <div class="star-content">
+    <ul>
+      <li>定义运动员视角的"禁区"：不能出现训练区间、VDOT 值、ACWR、任何专业术语</li>
+      <li>设计 care_message 机制：检测到消极情绪时生成温暖关怀语，但绝对不能暴露心理分析内容</li>
+      <li>prompt 中明确标注"运动员端绝对不能出现：..."的清单</li>
+      <li>经过 3 轮 prompt 迭代，调整输出格式的 JSON schema</li>
+    </ul>
+  </div>
+  <br>
+  <div><span class="star-label star-r">R</span></div>
+  <div class="star-content">
+    <ul>
+      <li>运动员端报告满意度 4.2/5（"感觉被关心而不是被监视"）</li>
+      <li>教练端报告采纳率 68%</li>
+      <li>care_message 提升了运动员的提交意愿</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== Q5 ==================== -->
+<h3 id="q5">Q5：医训冲突检测是怎么想到的？</h3>
+<div class="star-card">
+  <div><span class="star-label star-s">S</span></div>
+  <div class="star-content">队医在下午对运动员做了膝盖治疗，主教练不知道，第二天安排了间歇跑。运动员带伤训练，伤病加重。</div>
+  <br>
+  <div><span class="star-label star-t">T</span></div>
+  <div class="star-content">需要一个机制让治疗决策和训练决策自动交叉检查。</div>
+  <br>
+  <div><span class="star-label star-a">A</span></div>
+  <div class="star-content">
+    <ul>
+      <li>建立"身体部位 → 训练区域"映射表</li>
+      <li>队医录入治疗后，系统自动检索次日训练计划</li>
+      <li>检测到冲突时，按严重程度分级（无冲突/轻微/严重）</li>
+      <li>严重冲突自动推送通知给主教练和助教</li>
+    </ul>
+  </div>
+  <br>
+  <div><span class="star-label star-r">R</span></div>
+  <div class="star-content">
+    <ul>
+      <li>上线后第一周检测到 3 次潜在冲突</li>
+      <li>队医反馈"终于不用担心治疗白做了"</li>
+      <li>成为产品的差异化卖点之一</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== Q6 ==================== -->
+<h3 id="q6">Q6：为什么选择语音输入而不是表单？</h3>
+<div class="star-card">
+  <div><span class="star-label star-s">S</span></div>
+  <div class="star-content">运动员训练后最不想做的事就是填表。传统系统要求逐一填写 9 个字段，耗时 3-5 分钟。</div>
+  <br>
+  <div><span class="star-label star-t">T</span></div>
+  <div class="star-content">需要让运动员愿意在训练后 5 分钟内（"感受黄金窗口"）完成反馈。</div>
+  <br>
+  <div><span class="star-label star-a">A</span></div>
+  <div class="star-content">
+    <ul>
+      <li>对比了三种方案：表单录入、ChatBot 对话、语音输入</li>
+      <li>选择语音输入：按住说话 30 秒完成，AI 自动解析为结构化数据</li>
+      <li>设计了三层降级：MediaRecorder → AudioContext → 文字输入</li>
+    </ul>
+  </div>
+  <br>
+  <div><span class="star-label star-r">R</span></div>
+  <div class="star-content">
+    <ul>
+      <li>语音使用率 72%（超过预期的 60% 目标）</li>
+      <li>反馈平均耗时从 3-5 分钟降到 45 秒</li>
+      <li>训练后 30 分钟内提交率从 20% 提升到 55%</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== Q7-Q8 ==================== -->
+<h3 id="q7">Q7：语音输入在技术上遇到了什么挑战？</h3>
+<div class="star-card">
+  <div><span class="star-label star-s">S</span></div>
+  <div class="star-content">运动员训练完用微信扫码打开系统，但微信内置浏览器不支持 MediaRecorder API。</div>
+  <br>
+  <div><span class="star-label star-t">T</span></div>
+  <div class="star-content">需要在不依赖特定浏览器 API 的情况下实现语音录音。</div>
+  <br>
+  <div><span class="star-label star-a">A</span></div>
+  <div class="star-content">
+    <ul>
+      <li>Web Speech API → 依赖 Google 服务器，国内不稳定，放弃</li>
+      <li>MediaRecorder → 微信不支持，放弃</li>
+      <li>AudioContext 手动录音 → 兼容性最好，最终选择</li>
+      <li>实现双方案自动切换：优先 MediaRecorder，不支持时降级到 AudioContext</li>
+    </ul>
+  </div>
+  <br>
+  <div><span class="star-label star-r">R</span></div>
+  <div class="star-content">微信、小米浏览器、Chrome 全部支持；准确率约 85%；无 HTTPS 时自动降级为文字输入。</div>
+</div>
+
+<h3 id="q8">Q8：怎么决定产品优先级的？</h3>
+<div class="star-card">
+  <div><span class="star-label star-s">S</span></div>
+  <div class="star-content">v1.0 需要在有限时间内跑通核心闭环，但功能需求远超开发能力。</div>
+  <br>
+  <div><span class="star-label star-a">A</span></div>
+  <div class="star-content">
+    <p>使用公式：<strong>投入产出比 = 用户价值 × 使用频率 ÷ 实现成本</strong></p>
+    <ul>
+      <li>必须有：语音反馈、AI 分析、双视角报告、基础计划管理</li>
+      <li>应该有：冲突检查、体测评估、多语言</li>
+      <li>可以有：AI 辅助计划、管理端考勤</li>
+      <li>不做：社交功能、商业化模块</li>
+    </ul>
+  </div>
+  <br>
+  <div><span class="star-label star-r">R</span></div>
+  <div class="star-content">v1.0 用 4 周完成核心闭环。冲突检查从"应该有"提升到"必须有"——因为医训协同是最大的差异化价值。</div>
+</div>
+
+<!-- ==================== Q9-Q11 ==================== -->
+<h3 id="q9">Q9：上线后数据表现如何？</h3>
+<div class="star-card">
+  <table>
+    <tr><th>指标</th><th>目标</th><th>实际</th><th>状态</th></tr>
+    <tr><td>语音使用率</td><td>≥60%</td><td>72%</td><td style="color:var(--green)">✅ 超预期</td></tr>
+    <tr><td>反馈平均耗时</td><td>≤90秒</td><td>45秒</td><td style="color:var(--green)">✅ 超预期</td></tr>
+    <tr><td>体测完成率</td><td>≥85%</td><td>78%</td><td style="color:var(--amber)">⚠️ 略低</td></tr>
+    <tr><td>AI 报告查看率</td><td>≥90%</td><td>92%</td><td style="color:var(--green)">✅ 达标</td></tr>
+    <tr><td>冲突检查使用率</td><td>≥60%</td><td>45%</td><td style="color:var(--amber)">⚠️ 需优化</td></tr>
+  </table>
+</div>
+
+<h3 id="q10">Q10：体测完成率没达标，做了什么调整？</h3>
+<div class="star-card">
+  <div><span class="star-label star-a">A</span></div>
+  <div class="star-content">
+    <ul>
+      <li>分析漏斗：注册 → 看到体测页 → 开始填写 → 完成</li>
+      <li>发现卡点：Conconi 测试选项太专业</li>
+      <li>调整：PB 成绩推算设为默认推荐；Conconi 改为"高级选项"；增加"跳过"按钮</li>
+    </ul>
+  </div>
+  <br>
+  <div><span class="star-label star-r">R</span></div>
+  <div class="star-content">体测完成率从 78% 提升到 <strong>88%</strong>。PB 成绩方式选择率从 65% 提升到 82%。</div>
+</div>
+
+<h3 id="q11">Q11：冲突检查使用率没达标？</h3>
+<div class="star-card">
+  <div><span class="star-label star-a">A</span></div>
+  <div class="star-content">
+    <ul>
+      <li>访谈 3 位队医，发现：入口太深 + 习惯用微信告诉教练</li>
+      <li>调整：队医录入治疗后<strong>自动触发</strong>冲突检查；结果直接推送给教练</li>
+    </ul>
+  </div>
+  <br>
+  <div><span class="star-label star-r">R</span></div>
+  <div class="star-content">冲突检出率从 45% 提升到 <strong>72%</strong>。</div>
+</div>
+
+<!-- ==================== Q12-Q16 ==================== -->
+<h3 id="q12">Q12：为什么选择 VDOT？</h3>
+<div class="star-card">
+  <div class="star-content">
+    <p>对比了 4 种方案：</p>
+    <table>
+      <tr><th>方案</th><th>优势</th><th>劣势</th></tr>
+      <tr><td><strong>VDOT（选择）</strong></td><td>从比赛成绩反推，有大量研究验证</td><td>需要比赛成绩</td></tr>
+      <tr><td>乳酸阈</td><td>生理学最精确</td><td>需要实验室测试</td></tr>
+      <tr><td>最大心率</td><td>容易测量</td><td>与配速无直接换算</td></tr>
+      <tr><td>FTP</td><td>自行车标准</td><td>不适用于跑步</td></tr>
+    </table>
+    <p><strong>结论</strong>：运动员知道自己的 10km 成绩，系统就能算出他应该怎么练。</p>
+  </div>
+</div>
+
+<h3 id="q13">Q13：多团队隔离怎么设计的？</h3>
+<div class="star-card">
+  <div class="star-content">
+    <p>选择邀请码方案：6 位随机码，教练微信发给队员即可。</p>
+    <ul>
+      <li>团队创建率 100%（首次登录强制引导）</li>
+      <li>邀请码分享率 90%（一键复制）</li>
+      <li>跨队数据泄露事件：0</li>
+    </ul>
+  </div>
+</div>
+
+<h3 id="q14">Q14：三语国际化怎么做的？</h3>
+<div class="star-card">
+  <div class="star-content">
+    <ul>
+      <li>自研 i18n 方案：LanguageProvider + useI18n hook + locale 文件</li>
+      <li>所有 UI 文本使用 <code>coachT.key || "中文回退"</code> 模式</li>
+      <li>动态内容通过 API 翻译，缓存 7 天</li>
+      <li>英文覆盖 100%，意大利语覆盖 80%</li>
+    </ul>
+  </div>
+</div>
+
+<h3 id="q15">Q15：AI prompt 为什么内嵌理论？</h3>
+<div class="star-card">
+  <div class="star-content">
+    <p>对比了通用 prompt 和理论内嵌 prompt，选择后者：</p>
+    <ul>
+      <li>将丹尼尔斯、邦帕、运动心理学三大理论写入 system prompt</li>
+      <li>教练反馈"AI 的建议有依据，不是瞎说"</li>
+      <li>教练采纳率 68%</li>
+    </ul>
+  </div>
+</div>
+
+<h3 id="q16">Q16：AI 分析超时怎么解决的？</h3>
+<div class="star-card">
+  <div class="star-content">
+    <ul>
+      <li>原因：mimo-v2.5-pro 模型太重，需要 30-60 秒</li>
+      <li>方案：切换到轻量模型 mimo-v2.5</li>
+      <li>响应时间从 30-60 秒降到 <strong>5-15 秒</strong></li>
+      <li>超时率从 40% 降到 <strong>2%</strong></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== Q17-Q21 ==================== -->
+<h3 id="q17">Q17：运动员不愿意用语音怎么办？</h3>
+<div class="star-card">
+  <div class="star-content">
+    <ul>
+      <li>提供文字输入作为备选</li>
+      <li>语音按钮设计为"按住说话"，减少暴露感</li>
+      <li>浏览器不支持录音时自动切到文字模式</li>
+      <li>结果：语音使用率 72%，文字 28%，没有因"尴尬"放弃的用户</li>
+    </ul>
+  </div>
+</div>
+
+<h3 id="q18">Q18：怎么验证"双视角"设计？</h3>
+<div class="star-card">
+  <div class="star-content">
+    <p>A/B 测试：</p>
+    <table>
+      <tr><th>指标</th><th>A 组（单视角）</th><th>B 组（双视角）</th></tr>
+      <tr><td>运动员反馈提交率</td><td>基准</td><td><strong>+25%</strong></td></tr>
+      <tr><td>运动员投诉率</td><td>3 次</td><td><strong>0</strong></td></tr>
+      <tr><td>教练报告查看率</td><td>无差异</td><td>无差异</td></tr>
+    </table>
+    <p><strong>结论</strong>：双视角显著提升了运动员的使用意愿，同时不影响教练端。</p>
+  </div>
+</div>
+
+<h3 id="q19">Q19：最大的失败是什么？</h3>
+<div class="star-card">
+  <div class="star-content">
+    <p>v1.0 上线初期，AI 分析频繁超时。</p>
+    <ul>
+      <li>最初以为是网络问题，加了重试机制 → 无效</li>
+      <li>尝试压缩 prompt 长度 → 分析质量明显下降</li>
+      <li>最终方案：切换到轻量模型</li>
+    </ul>
+    <p><strong>教训</strong>：先验证假设再优化，不要在错误的方向上努力。</p>
+  </div>
+</div>
+
+<h3 id="q20">Q20：最大的取舍是什么？</h3>
+<div class="star-card">
+  <div class="star-content">
+    <p><strong>砍掉了运动员端的趋势分析功能</strong></p>
+    <ul>
+      <li>原因：趋势分析需要历史数据积累，新用户没有数据</li>
+      <li>替代方案：先做单次分析，v2.0 再做趋势</li>
+      <li>其他取舍：管理端缩减为只做考勤；社交功能完全不做</li>
+    </ul>
+  </div>
+</div>
+
+<h3 id="q21">Q21：怎么平衡 AI 建议和教练权威？</h3>
+<div class="star-card">
+  <div class="star-content">
+    <ul>
+      <li>所有 AI 报告底部标注"请结合实际判断"</li>
+      <li>AI 建议用"建议"而非"应该"的措辞</li>
+      <li>教练可以一键忽略 AI 建议</li>
+      <li>AI 不直接给运动员下达训练指令</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== Q22-Q25 ==================== -->
+<h3 id="q22">Q22：为什么不做原生 App？</h3>
+<div class="star-card">
+  <div class="star-content">
+    <table>
+      <tr><th>方案</th><th>优势</th><th>劣势</th></tr>
+      <tr><td><strong>PWA（选择）</strong></td><td>零安装、跨平台、自动更新</td><td>推送通知受限</td></tr>
+      <tr><td>原生 App</td><td>推送通知完整</td><td>需要两个团队开发</td></tr>
+      <tr><td>小程序</td><td>微信生态分发</td><td>受限于平台规则</td></tr>
+    </table>
+    <p>开发成本降低 60%，用户添加到主屏幕后体验接近原生 App。</p>
+  </div>
+</div>
+
+<h3 id="q23">Q23：怎么做用户调研的？</h3>
+<div class="star-card">
+  <div class="star-content">
+    <ul>
+      <li>跟队观察 2 周，记录日常工作流</li>
+      <li>深度访谈 5 位教练、8 位运动员、2 位队医</li>
+      <li>使用"5 个为什么"方法挖掘深层需求</li>
+      <li>关键发现：运动员说"还行"不是因为没感受，而是因为不知道该说什么</li>
+    </ul>
+  </div>
+</div>
+
+<h3 id="q24">Q24：怎么设计数据指标体系？</h3>
+<div class="star-card">
+  <div class="star-content">
+    <p><strong>北极星指标</strong>：周活跃教练率（而非运动员活跃率）</p>
+    <p>原因：运动员使用是被动的，教练使用是主动的。教练活跃 = 系统在用。</p>
+    <table>
+      <tr><th>层级</th><th>指标</th></tr>
+      <tr><td>一级</td><td>运动员反馈提交率、AI 报告查看率、冲突检查使用率</td></tr>
+      <tr><td>二级</td><td>语音使用率、体测完成率、教练采纳率</td></tr>
+      <tr><td>反向</td><td>误报疲劳度、隐私投诉</td></tr>
+    </table>
+  </div>
+</div>
+
+<h3 id="q25">Q25：如果重新做会改变什么？</h3>
+<div class="star-card">
+  <div class="star-content">
+    <ul>
+      <li>会更早做用户测试（体测完成率低本可避免）</li>
+      <li>会更早考虑多团队隔离（后来加改动量很大）</li>
+      <li>会更早做 PWA（移动端体验是核心）</li>
+    </ul>
+    <p><strong>教训</strong>：先验证假设再开发，不要在真空中设计产品。</p>
+  </div>
+</div>
+
+<!-- ==================== Q26-Q30 ==================== -->
+<h3 id="q26">Q26：和工程师怎么协作？</h3>
+<div class="star-card">
+  <div class="star-content">
+    <ul>
+      <li>需求阶段：写 PRD，明确验收标准</li>
+      <li>设计阶段：提供设计规范，工程师按规范实现</li>
+      <li>开发阶段：每日站会，同步进度和阻塞点</li>
+      <li>测试阶段：写测试用例，工程师执行</li>
+      <li>上线阶段：灰度发布，监控关键指标</li>
+    </ul>
+  </div>
+</div>
+
+<h3 id="q27">Q27：怎么做竞品分析？</h3>
+<div class="star-card">
+  <div class="star-content">
+    <p>竞品：TrainingPeaks、FinalSurge、悦跑圈、Keep</p>
+    <p>关键发现：</p>
+    <ul>
+      <li>TrainingPeaks：功能最全，但界面复杂，不适合国内教练</li>
+      <li>悦跑圈：面向大众，缺乏专业分析</li>
+      <li>所有竞品都是单视角，没有 AI 驱动的双视角分析</li>
+    </ul>
+    <p>定位差异化：<strong>AI 驱动 + 双视角 + 医训协同</strong></p>
+  </div>
+</div>
+
+<h3 id="q28">Q28：怎么处理功能膨胀？</h3>
+<div class="star-card">
+  <div class="star-content">
+    <ul>
+      <li>建立"功能停车场"：所有新想法记下来，但不立即开发</li>
+      <li>每个功能用"投入产出比"公式评估</li>
+      <li>坚持"MVP 原则"：先做最小可用版本，验证后再扩展</li>
+      <li>砍掉了 5 个"看起来不错但不是必须"的功能</li>
+    </ul>
+  </div>
+</div>
+
+<h3 id="q29">Q29：对 AI 在体育领域的看法？</h3>
+<div class="star-card">
+  <div class="star-content">
+    <p>AI 在体育领域的价值：<strong>从"事后分析"到"实时决策支持"</strong></p>
+    <p>未来方向：</p>
+    <ul>
+      <li>实时训练监控：穿戴设备 + AI 实时分析</li>
+      <li>个性化训练计划：基于历史数据自动调整</li>
+      <li>伤病预测：多因素模型预测伤病风险</li>
+    </ul>
+    <p>关键原则：AI 是辅助工具，不是替代品。</p>
+  </div>
+</div>
+
+<h3 id="q30">Q30：最自豪的是什么？</h3>
+<div class="star-card">
+  <div class="star-content">
+    <p>最自豪的不是技术实现，而是<strong>产品决策</strong>：</p>
+    <ol>
+      <li>坚持双视角设计，即使技术实现更复杂</li>
+      <li>坚持语音优先，即使需要处理浏览器兼容性问题</li>
+      <li>坚持医训协同，即使需要跨角色数据整合</li>
+    </ol>
+    <p>这些决策都来自深入的用户理解，而不是技术驱动。</p>
+  </div>
+</div>
+
+<hr>
+
+<!-- ==================== 数据汇总 ==================== -->
+<h2>三、关键数据汇总</h2>
+
+<table>
+  <tr><th>指标</th><th>目标</th><th>实际</th><th>状态</th></tr>
+  <tr><td>语音使用率</td><td>≥60%</td><td>72%</td><td style="color:var(--green)">✅</td></tr>
+  <tr><td>反馈平均耗时</td><td>≤90秒</td><td>45秒</td><td style="color:var(--green)">✅</td></tr>
+  <tr><td>体测完成率</td><td>≥85%</td><td>88%（调整后）</td><td style="color:var(--green)">✅</td></tr>
+  <tr><td>AI 报告查看率</td><td>≥90%</td><td>92%</td><td style="color:var(--green)">✅</td></tr>
+  <tr><td>冲突检查使用率</td><td>≥60%</td><td>72%（调整后）</td><td style="color:var(--green)">✅</td></tr>
+  <tr><td>教练采纳率</td><td>≥30%</td><td>68%</td><td style="color:var(--green)">✅</td></tr>
+  <tr><td>跨队数据泄露</td><td>0</td><td>0</td><td style="color:var(--green)">✅</td></tr>
+</table>
+
+<hr>
+
+<!-- ==================== 面试表达 ==================== -->
+<h2>四、面试表达建议</h2>
+
+<h3>1 分钟版本</h3>
+<div class="highlight">
+<p>"我做了一套面向专业运动队的 AI 训练分析平台，叫脉。核心创新有三个：第一，双视角 AI 报告——运动员看到训练日记，教练看到专业分析，解决了'AI 比教练还懂'的信任危机；第二，医训冲突检测——队医治疗计划和次日训练计划自动交叉比对，避免带伤训练；第三，语音结构化反馈——运动员按住说话 30 秒，AI 自动解析为结构化数据。上线后语音使用率 72%，教练采纳率 68%。"</p>
+</div>
+
+<h3>3 分钟版本</h3>
+<p>用 Q1 → Q3 → Q4 → Q9 的顺序讲：为什么做 → 最大创新 → 怎么设计的 → 结果如何。</p>
+
+<h3>5 分钟版本</h3>
+<p>用 Q1 → Q2 → Q3 → Q4 → Q5 → Q6 → Q9 → Q10 → Q25 的顺序讲：完整的故事线，从问题到方案到结果到反思。</p>
+
+</div>
+</body>
+</html>
