@@ -359,6 +359,16 @@
   }
 
   @media print {
+    @page {
+      margin: 0;
+      size: A4;
+    }
+    body {
+      padding: 0;
+    }
+    .wrap {
+      padding: 0 24px;
+    }
     .sec { break-inside: avoid; }
   }
 </style>
