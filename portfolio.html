@@ -136,8 +136,10 @@
   }
   .img-wrap img {
     width: 100%;
-    height: auto;
+    max-height: 480px;
+    object-fit: contain;
     display: block;
+    background: var(--surface);
   }
 
   .img-caption {
@@ -145,6 +147,13 @@
     color: var(--text-dim);
     text-align: center;
     margin-top: 8px;
+  }
+
+  /* 单图限制宽度 */
+  .img-single {
+    max-width: 380px;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   /* ===== Table ===== */
@@ -588,12 +597,12 @@
   </div>
   <div class="img-caption">AI 辅助生成训练计划：选择目标 + 阶段 → 生成周计划</div>
 
-  <div class="img-wrap" style="margin-top:24px;">
+  <div class="img-wrap img-single" style="margin-top:24px;">
     <img src="AI训练计划建议示意2.png" alt="AI 计划建议">
   </div>
   <div class="img-caption">AI 计划建议：负荷分析 + 注意事项 + 理论依据</div>
 
-  <div class="img-wrap" style="margin-top:24px;">
+  <div class="img-wrap img-single" style="margin-top:24px;">
     <img src="孔科尼测试示意.png" alt="体测评估">
   </div>
   <div class="img-caption">初始能力评估：PB 成绩 → VDOT → 5 区训练区间</div>
@@ -657,7 +666,7 @@
     </div>
   </div>
 
-  <div class="img-wrap" style="margin-top:24px;">
+  <div class="img-wrap img-single" style="margin-top:24px;">
     <img src="登录页面示意.png" alt="登录页面">
   </div>
   <div class="img-caption">登录页：脉 / MAI · Movement · Analysis · Intelligence</div>
@@ -672,7 +681,7 @@
   </div>
   <div class="img-caption">三语国际化：中文 / English / Italiano</div>
 
-  <div class="img-wrap" style="margin-top:16px;">
+  <div class="img-wrap img-single" style="margin-top:16px;">
     <img src="主教练录入训练课示意.png" alt="训练课录入">
   </div>
   <div class="img-caption">主教练端：语音录入训练课</div>
