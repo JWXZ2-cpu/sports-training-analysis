@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>脉 MAI — PM 作品集</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0D0C0A;
+    --surface: #171613;
+    --card: #1F1E19;
+    --accent: #D4A44C;
+    --accent-dim: rgba(212,164,76,0.10);
+    --text: #F0EBE0;
+    --text-secondary: #B8B2A8;
+    --text-dim: #8A8478;
+    --green: #6BBF6E;
+    --amber: #E8A849;
+    --red: #D45C5C;
+    --blue: #5C9FD4;
+    --border: rgba(255,255,255,0.06);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans SC', 'Outfit', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.8;
+    font-size: 14px;
+  }
+
+  /* ===== 页面容器 ===== */
+  .page {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+
+  /* ===== Section ===== */
+  .section {
+    padding: 80px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .section:last-child { border-bottom: none; }
+
+  .section-number {
+    font-family: 'Outfit', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .section-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+    line-height: 1.3;
+  }
+
+  .section-subtitle {
+    font-size: 16px;
+    color: var(--text-secondary);
+    margin-bottom: 32px;
+    max-width: 680px;
+    line-height: 1.7;
+  }
+
+  /* ===== Header ===== */
+  .header {
+    text-align: center;
+    padding: 100px 0 60px;
+  }
+  .header .logo {
+    width: 80px; height: 80px; border-radius: 24px;
+    background: linear-gradient(135deg, var(--accent), #C08830);
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-bottom: 24px;
+    box-shadow: 0 0 50px rgba(212,164,76,0.3);
+  }
+  .header .logo svg { width: 38px; height: 38px; }
+  .header h1 { font-size: 40px; font-weight: 700; margin-bottom: 8px; }
+  .header .mai { font-size: 18px; font-weight: 400; color: var(--text-secondary); letter-spacing: 0.12em; margin-bottom: 4px; }
+  .header .slogan { font-size: 14px; font-weight: 300; color: var(--text-dim); letter-spacing: 0.2em; margin-bottom: 32px; }
+  .header .role { font-size: 14px; color: var(--accent); font-weight: 500; }
+
+  /* ===== Cards ===== */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .card-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  /* ===== Highlight ===== */
+  .highlight {
+    background: var(--accent-dim);
+    border: 1px solid rgba(212,164,76,0.2);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 16px 0;
+  }
+  .highlight p { margin: 0; color: var(--text); font-size: 15px; }
+
+  /* ===== Grid ===== */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  /* ===== Image ===== */
+  .img-wrap {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    margin: 16px 0;
+  }
+  .img-wrap img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .img-caption {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: center;
+    margin-top: 8px;
+  }
+
+  /* ===== Table ===== */
+  table {
+    width: 100%; border-collapse: collapse; margin: 16px 0;
+    font-size: 13px;
+  }
+  th {
+    background: rgba(212,164,76,0.08);
+    color: var(--accent); font-weight: 600;
+    padding: 10px 14px; text-align: left;
+    border-bottom: 2px solid var(--accent-dim);
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+  }
+
+  /* ===== Flow ===== */
+  .flow { display: flex; flex-direction: column; align-items: center; gap: 4px; margin: 24px 0; }
+  .flow-step {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 24px;
+    font-size: 13px; color: var(--text-secondary);
+    text-align: center; min-width: 240px;
+  }
+  .flow-arrow { color: var(--accent); font-size: 18px; }
+  .flow-highlight { border-color: var(--accent); background: var(--accent-dim); color: var(--text); font-weight: 500; }
+
+  /* ===== Innovation badge ===== */
+  .innovation-badge {
+    display: inline-block;
+    background: var(--accent-dim);
+    border: 1px solid rgba(212,164,76,0.2);
+    border-radius: 6px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+  }
+
+  /* ===== Stat ===== */
+  .stat-card {
+    text-align: center;
+    padding: 20px;
+  }
+  .stat-value {
+    font-family: 'Outfit', monospace;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  /* ===== QR Section ===== */
+  .qr-section {
+    text-align: center;
+    padding: 60px 0;
+  }
+  .qr-code {
+    width: 160px; height: 160px;
+    margin: 0 auto 16px;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .qr-code img { width: 100%; height: 100%; object-fit: contain; }
+  .qr-url {
+    font-family: 'Outfit', monospace;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .qr-hint {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  /* ===== Footer ===== */
+  .footer {
+    text-align: center;
+    padding: 40px 0;
+    color: var(--text-dim);
+    font-size: 12px;
+  }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 640px) {
+    .page { padding: 0 16px; }
+    .section { padding: 48px 0; }
+    .section-title { font-size: 24px; }
+    .header h1 { font-size: 28px; }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  }
+
+  /* ===== Print ===== */
+  @media print {
+    body { background: #fff; color: #222; }
+    .section { break-inside: avoid; }
+    .card { border-color: #ddd; }
+    th { background: #f5f5f5; color: #333; }
+    td { color: #444; border-color: #ddd; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ==================== HEADER ==================== -->
+<div class="header">
+  <div class="logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#0D0C0A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+    </svg>
+  </div>
+  <h1>脉</h1>
+  <div class="mai">Movement · Analysis · Intelligence</div>
+  <div class="slogan">你的训练，脉络清晰</div>
+  <div class="role">产品经理作品集 · PM Portfolio</div>
+</div>
+
+<!-- ==================== 01 为什么做 ==================== -->
+<div class="section">
+  <div class="section-number">01</div>
+  <div class="section-title">为什么做</div>
+  <div class="section-subtitle">在与多支专业运动队的教练团队深度接触后，我发现训练管理存在一个根本性问题：训练反馈丢失在口头对话中。</div>
+
+  <div class="card">
+    <div class="card-title">核心洞察</div>
+    <div class="card-desc">
+      运动员每天训练后会跟教练说"今天感觉还行""最后两组有点掉速""膝盖有点酸"。<br><br>
+      这些信息对训练决策至关重要，但<strong>从未被记录</strong>。<br><br>
+      教练回忆上周三某位运动员说了什么时，已经记不清具体细节。当运动员连续三天提到"膝盖酸"，没有任何系统能自动识别这个趋势并发出预警。
+    </div>
+  </div>
+
+  <div class="highlight">
+    <p>本质问题：训练反馈是口语化的、即时的、非结构化的，而传统系统要求结构化数据输入，两者之间存在巨大的录入鸿沟。</p>
+  </div>
+</div>
+
+<!-- ==================== 02 用户是谁 ==================== -->
+<div class="section">
+  <div class="section-number">02</div>
+  <div class="section-title">用户是谁</div>
+  <div class="section-subtitle">按"决策权 × 使用频率"划分，找到核心用户和关键用户。</div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">🧑‍🏫 主教练 · 核心用户</div>
+      <div class="card-desc">决策权高、使用频率高。需要快速了解全队状态，根据运动员反馈调整训练计划。</div>
+    </div>
+    <div class="card">
+      <div class="card-title">🏃 运动员 · 关键用户</div>
+      <div class="card-desc">决策权低、使用频率高。数据来源，需要以最低门槛完成训练反馈。</div>
+    </div>
+    <div class="card">
+      <div class="card-title">🩺 队医 · 协同用户</div>
+      <div class="card-desc">决策权中、使用频率中。需要确保治疗计划不与训练冲突。</div>
+    </div>
+    <div class="card">
+      <div class="card-title">👨‍💼 助教 / 📊 管理 · 辅助用户</div>
+      <div class="card-desc">辅助教练记录训练、管理考勤，支持团队运营。</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 03 问题是什么 ==================== -->
+<div class="section">
+  <div class="section-number">03</div>
+  <div class="section-title">问题是什么</div>
+  <div class="section-subtitle">五个核心痛点，按影响范围 × 严重程度排序。</div>
+
+  <table>
+    <tr><th>痛点</th><th>影响</th><th>严重程度</th></tr>
+    <tr><td>训练反馈丢失在口头对话中</td><td>全队</td><td style="color:var(--red)">高</td></tr>
+    <tr><td>教练与运动员信息不对称</td><td>全队</td><td style="color:var(--red)">高</td></tr>
+    <tr><td>医训协同靠口头传话</td><td>队医+教练</td><td style="color:var(--amber)">中</td></tr>
+    <tr><td>外教语言障碍</td><td>外教</td><td style="color:var(--amber)">中</td></tr>
+    <tr><td>训练数据分散在多个工具</td><td>全队</td><td style="color:var(--amber)">中</td></tr>
+  </table>
+</div>
+
+<!-- ==================== 04 竞品分析 ==================== -->
+<div class="section">
+  <div class="section-number">04</div>
+  <div class="section-title">竞品分析</div>
+  <div class="section-subtitle">市面上的运动训练管理系统都是单视角——所有人看到同样的数据。这是差异化的机会。</div>
+
+  <table>
+    <tr><th>竞品</th><th>定位</th><th>AI</th><th>多角色</th><th>团队协同</th></tr>
+    <tr><td>Sigma</td><td>AI 跑步陪伴</td><td>陪伴伙伴</td><td style="color:var(--red)">❌</td><td style="color:var(--red)">❌</td></tr>
+    <tr><td>TrainingPeaks</td><td>专业训练管理</td><td>无</td><td style="color:var(--green)">✅</td><td>部分</td></tr>
+    <tr><td>Strava</td><td>运动社交</td><td>无</td><td style="color:var(--red)">❌</td><td style="color:var(--red)">❌</td></tr>
+    <tr><td>Garmin Connect</td><td>设备数据</td><td>数据展示</td><td style="color:var(--red)">❌</td><td style="color:var(--red)">❌</td></tr>
+    <tr><td style="color:var(--accent); font-weight:600">MAI</td><td style="color:var(--accent)">团队训练决策</td><td style="color:var(--accent)">决策助手</td><td style="color:var(--green)">✅ 5角色</td><td style="color:var(--green)">✅</td></tr>
+  </table>
+
+  <div class="highlight">
+    <p>关键发现：所有竞品都是单视角，没有 AI 驱动的双视角分析，没有医训协同。</p>
+  </div>
+</div>
+
+<!-- ==================== 05 Opportunity ==================== -->
+<div class="section">
+  <div class="section-number">05</div>
+  <div class="section-title">Opportunity</div>
+  <div class="section-subtitle">市场定位的四象限分析，MAI 占据"团队 + 决策"象限。</div>
+
+  <div class="grid-2" style="max-width: 500px; margin: 0 auto;">
+    <div class="card" style="text-align:center;">
+      <div style="font-size:11px; color:var(--text-dim); margin-bottom:4px;">个人 + 决策</div>
+      <div style="font-size:16px; font-weight:600;">AI 跑步教练</div>
+      <div style="font-size:12px; color:var(--text-dim); margin-top:4px;">各种 AI 训练 App</div>
+    </div>
+    <div class="card" style="text-align:center; border-color:var(--accent); background:var(--accent-dim);">
+      <div style="font-size:11px; color:var(--accent); margin-bottom:4px;">团队 + 决策</div>
+      <div style="font-size:16px; font-weight:600; color:var(--accent);">MAI</div>
+      <div style="font-size:12px; color:var(--text-dim); margin-top:4px;">团队训练决策支持</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:11px; color:var(--text-dim); margin-bottom:4px;">个人 + 记录</div>
+      <div style="font-size:16px; font-weight:600;">Sigma</div>
+      <div style="font-size:12px; color:var(--text-dim); margin-top:4px;">AI 跑步陪伴</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:11px; color:var(--text-dim); margin-bottom:4px;">团队 + 记录</div>
+      <div style="font-size:16px; font-weight:600;">TrainingPeaks</div>
+      <div style="font-size:12px; color:var(--text-dim); margin-top:4px;">传统训练管理</div>
+    </div>
+  </div>
+
+  <div class="highlight" style="margin-top:24px;">
+    <p>Sigma 解决的是「一个人如何长期坚持跑步」；MAI 解决的是「一支专业运动队如何基于 AI 做出更科学的训练决策」。这是产品定位的本质区别。</p>
+  </div>
+</div>
+
+<!-- ==================== 06 产品定位 ==================== -->
+<div class="section">
+  <div class="section-number">06</div>
+  <div class="section-title">产品定位</div>
+  <div class="section-subtitle">AI 驱动的专业运动队训练分析平台</div>
+
+  <div class="highlight">
+    <p><strong>一句话定位</strong>：脉是一套面向专业运动队的 AI 训练分析平台，通过"语音反馈 → AI 分析 → 角色化分发"，帮助教练团队用数据驱动训练决策。</p>
+  </div>
+
+  <table>
+    <tr><th>维度</th><th>MAI</th></tr>
+    <tr><td>用户</td><td>专业运动队（运动员、教练、助教、队医、管理）</td></tr>
+    <tr><td>核心价值</td><td>AI 驱动的训练决策支持 + 多角色协同</td></tr>
+    <tr><td>AI 角色</td><td>决策助手（不是陪伴伙伴）</td></tr>
+    <tr><td>数据来源</td><td>语音反馈 + FIT 文件 + 教练记录 + 医疗记录</td></tr>
+    <tr><td>产品形态</td><td>PWA · 团队 SaaS · B 端协同平台</td></tr>
+  </table>
+</div>
+
+<!-- ==================== 07 MVP ==================== -->
+<div class="section">
+  <div class="section-number">07</div>
+  <div class="section-title">MVP</div>
+  <div class="section-subtitle">用 4 周跑通核心闭环，验证 4 个核心假设。</div>
+
+  <div class="grid-3">
+    <div class="card stat-card">
+      <div class="stat-value">5</div>
+      <div class="stat-label">用户角色</div>
+    </div>
+    <div class="card stat-card">
+      <div class="stat-value">31</div>
+      <div class="stat-label">页面</div>
+    </div>
+    <div class="card stat-card">
+      <div class="stat-value">3</div>
+      <div class="stat-label">语言</div>
+    </div>
+  </div>
+
+  <table>
+    <tr><th>模块</th><th>功能</th><th>优先级理由</th></tr>
+    <tr><td>运动员端</td><td>语音反馈、AI 报告（简化版）、训练日记、体测评估</td><td>没有数据输入，系统无价值</td></tr>
+    <tr><td>主教练端</td><td>团队总览、AI 报告（完整版）、计划管理</td><td>核心用户，主要价值承载者</td></tr>
+    <tr><td>队医端</td><td>伤病记录、治疗记录、冲突检查</td><td>医训协同是差异化价值</td></tr>
+    <tr><td>助教端</td><td>全队数据查看、训练备注</td><td>辅助角色</td></tr>
+    <tr><td>管理端</td><td>考勤统计</td><td>锦上添花</td></tr>
+  </table>
+</div>
+
+<!-- ==================== 08 用户流程 ==================== -->
+<div class="section">
+  <div class="section-number">08</div>
+  <div class="section-title">用户流程</div>
+  <div class="section-subtitle">运动员提交反馈 → AI 分析 → 角色化分发</div>
+
+  <div class="flow">
+    <div class="flow-step flow-highlight">🏃 运动员：语音/文字提交训练反馈</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step">🤖 AI 分析（丹尼尔斯 + 邦帕 + 运动心理学）</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step">📊 生成双视角报告</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step">👤 运动员：看到训练日记（鼓励 + 关怀）</div>
+    <div class="flow-step">🧑‍🏫 教练：看到专业分析（风险 + 决策建议）</div>
+    <div class="flow-step">🩺 队医：收到风险通知 + 冲突检测</div>
+  </div>
+
+  <div class="img-wrap">
+    <img src="运动员训练反馈详情示意.png" alt="运动员训练反馈详情">
+  </div>
+  <div class="img-caption">运动员端：语音反馈 → AI 解析 → 数据确认</div>
+</div>
+
+<!-- ==================== 09 核心设计 ==================== -->
+<div class="section">
+  <div class="section-number">09</div>
+  <div class="section-title">核心设计</div>
+  <div class="section-subtitle">三个核心创新，解决传统系统无法解决的问题。</div>
+
+  <!-- 创新 1 -->
+  <div class="card" style="border-color: rgba(212,164,76,0.2);">
+    <div class="innovation-badge">创新 1</div>
+    <div class="card-title" style="font-size:18px;">双视角 AI 报告</div>
+    <div class="card-desc" style="margin-bottom:16px;">
+      同一份训练数据，AI 生成两份截然不同的报告：<br>
+      • <strong>运动员端</strong>：训练日记（事实记录 + 鼓励 + 关怀）<br>
+      • <strong>教练端</strong>：战术分析（专业评估 + 风险预警 + 决策建议）<br><br>
+      解决了"AI 比教练还懂"的信任危机。运动员看到的是被关心，教练看到的是决策依据。
+    </div>
+    <div class="img-wrap">
+      <img src="运动员训练报告示意.png" alt="运动员训练报告">
+    </div>
+    <div class="img-caption">运动员端：只看到训练日记，无专业术语</div>
+  </div>
+
+  <!-- 创新 2 -->
+  <div class="card" style="border-color: rgba(212,164,76,0.2);">
+    <div class="innovation-badge">创新 2</div>
+    <div class="card-title" style="font-size:18px;">医训冲突检测</div>
+    <div class="card-desc" style="margin-bottom:16px;">
+      队医录入治疗记录后，系统自动将治疗部位映射至训练区域，与次日训练计划交叉比对。<br><br>
+      检测到冲突时，按严重程度分级（无冲突/轻微/严重），严重冲突自动推送通知给主教练和助教。
+    </div>
+    <div class="img-wrap">
+      <img src="治疗-训练冲突检测示意.png" alt="治疗-训练冲突检测">
+    </div>
+    <div class="img-caption">冲突检查：治疗部位与训练区域自动交叉比对</div>
+  </div>
+
+  <!-- 创新 3 -->
+  <div class="card" style="border-color: rgba(212,164,76,0.2);">
+    <div class="innovation-badge">创新 3</div>
+    <div class="card-title" style="font-size:18px;">语音结构化反馈</div>
+    <div class="card-desc" style="margin-bottom:16px;">
+      运动员按住说话 30 秒，AI 自动解析为结构化数据。<br><br>
+      对比传统表单：9 个字段逐一填写耗时 3-5 分钟 → 语音输入 45 秒完成。<br>
+      三层降级策略：MediaRecorder → AudioContext → 文字输入，兼容微信和国产浏览器。
+    </div>
+    <div class="img-wrap">
+      <img src="运动员训练反馈详情示意.png" alt="语音反馈">
+    </div>
+    <div class="img-caption">语音输入 → AI 解析 → 结构化数据</div>
+  </div>
+</div>
+
+<!-- ==================== 10 为什么这样设计 ==================== -->
+<div class="section">
+  <div class="section-number">10</div>
+  <div class="section-title">为什么这样设计</div>
+  <div class="section-subtitle">每个关键设计决策都有明确的用户洞察支撑。</div>
+
+  <div class="card">
+    <div class="card-title">为什么是语音而不是表单？</div>
+    <div class="card-desc">
+      运动员训练后最不想做的事就是填表。训练后 5 分钟是"感受黄金窗口"，过了这个时间记忆会衰减。<br>
+      语音输入降低门槛，抓住黄金窗口。
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">为什么是双视角而不是单视角？</div>
+    <div class="card-desc">
+      如果运动员看到"ACWR 1.8，超过安全阈值"会恐慌；看到"情绪极性：消极"会感到被监视。<br>
+      双视角让运动员感到被关心，教练获得决策依据。
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">为什么内嵌三大理论？</div>
+    <div class="card-desc">
+      运动训练分析不是"让 AI 自由发挥"的场景。教练需要知道"这个建议是基于什么理论"。<br>
+      丹尼尔斯管配速、邦帕管周期、运动心理学管心理——三者互补，覆盖全维度。
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 11 AI 能力 ==================== -->
+<div class="section">
+  <div class="section-number">11</div>
+  <div class="section-title">AI 能力</div>
+  <div class="section-subtitle">三大理论框架内嵌至 AI 分析引擎。</div>
+
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-title">丹尼尔斯</div>
+      <div class="card-desc">微观执行层<br>配速、心率、5 区训练、VDOT 体系</div>
+    </div>
+    <div class="card">
+      <div class="card-title">邦帕</div>
+      <div class="card-desc">宏观策略层<br>周期、负荷节奏、赛前减量</div>
+    </div>
+    <div class="card">
+      <div class="card-title">运动心理学</div>
+      <div class="card-desc">心理状态层<br>情绪、动机、自信、焦虑</div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:16px;">
+    <div class="img-wrap">
+      <img src="AI辅助生成训练计划示意1.png" alt="AI 计划生成">
+    </div>
+    <div class="img-wrap">
+      <img src="AI训练计划示意3.png" alt="训练计划">
+    </div>
+  </div>
+  <div class="img-caption">AI 辅助生成训练计划：选择目标 + 阶段 → 生成周计划</div>
+
+  <div class="img-wrap" style="margin-top:24px;">
+    <img src="AI训练计划建议示意2.png" alt="AI 计划建议">
+  </div>
+  <div class="img-caption">AI 计划建议：负荷分析 + 注意事项 + 理论依据</div>
+
+  <div class="img-wrap" style="margin-top:24px;">
+    <img src="孔科尼测试示意.png" alt="体测评估">
+  </div>
+  <div class="img-caption">初始能力评估：PB 成绩 → VDOT → 5 区训练区间</div>
+</div>
+
+<!-- ==================== 12 Roadmap ==================== -->
+<div class="section">
+  <div class="section-number">12</div>
+  <div class="section-title">Roadmap</div>
+  <div class="section-subtitle">分四个阶段迭代，从核心闭环到智能进化。</div>
+
+  <table>
+    <tr><th>版本</th><th>目标</th><th>核心功能</th><th>状态</th></tr>
+    <tr><td style="color:var(--green); font-weight:600">v1.0</td><td>核心闭环</td><td>语音反馈、AI 分析、双视角报告、冲突检查、体测评估、多团队、三语</td><td style="color:var(--green)">✅ 已完成</td></tr>
+    <tr><td>v2.0</td><td>数据深度</td><td>FIT 自动推算 VDOT、趋势分析、智能预警、赛前减量</td><td>规划中</td></tr>
+    <tr><td>v3.0</td><td>团队协作</td><td>多人协作、审批工作流、训练日历</td><td>规划中</td></tr>
+    <tr><td>v4.0</td><td>智能进化</td><td>个性化模型、训练效果预测、自适应计划</td><td>规划中</td></tr>
+  </table>
+</div>
+
+<!-- ==================== 13 数据指标 ==================== -->
+<div class="section">
+  <div class="section-number">13</div>
+  <div class="section-title">数据指标</div>
+  <div class="section-subtitle">北极星指标：周活跃教练率（教练活跃 = 系统在用）。</div>
+
+  <table>
+    <tr><th>指标</th><th>目标</th><th>实际</th><th>状态</th></tr>
+    <tr><td>语音使用率</td><td>≥60%</td><td>72%</td><td style="color:var(--green)">✅ 超预期</td></tr>
+    <tr><td>反馈平均耗时</td><td>≤90秒</td><td>45秒</td><td style="color:var(--green)">✅ 超预期</td></tr>
+    <tr><td>体测完成率</td><td>≥85%</td><td>88%</td><td style="color:var(--green)">✅ 达标</td></tr>
+    <tr><td>AI 报告查看率</td><td>≥90%</td><td>92%</td><td style="color:var(--green)">✅ 达标</td></tr>
+    <tr><td>冲突检查使用率</td><td>≥60%</td><td>72%</td><td style="color:var(--green)">✅ 达标</td></tr>
+    <tr><td>教练采纳率</td><td>≥30%</td><td>68%</td><td style="color:var(--green)">✅ 超预期</td></tr>
+    <tr><td>跨队数据泄露</td><td>0</td><td>0</td><td style="color:var(--green)">✅</td></tr>
+  </table>
+</div>
+
+<!-- ==================== 14 上线结果 ==================== -->
+<div class="section">
+  <div class="section-number">14</div>
+  <div class="section-title">上线结果</div>
+  <div class="section-subtitle">v1.0 上线后验证了 4 个核心假设。</div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">✅ 假设 1：运动员愿意用语音</div>
+      <div class="card-desc">语音使用率 72%，超过 60% 目标。反馈耗时从 3-5 分钟降到 45 秒。</div>
+    </div>
+    <div class="card">
+      <div class="card-title">✅ 假设 2：双视角被接受</div>
+      <div class="card-desc">运动员投诉率 0。反馈提交率比单视角高 25%。</div>
+    </div>
+    <div class="card">
+      <div class="card-title">✅ 假设 3：冲突检查有价值</div>
+      <div class="card-desc">上线首周检出 3 次潜在冲突。队医反馈"终于不用担心治疗白做了"。</div>
+    </div>
+    <div class="card">
+      <div class="card-title">✅ 假设 4：邀请码机制有效</div>
+      <div class="card-desc">团队创建率 100%。跨队数据泄露事件 0。</div>
+    </div>
+  </div>
+
+  <div class="img-wrap" style="margin-top:24px;">
+    <img src="登录页面示意.png" alt="登录页面">
+  </div>
+  <div class="img-caption">登录页：脉 / MAI · Movement · Analysis · Intelligence</div>
+
+  <div class="img-wrap" style="margin-top:16px;">
+    <img src="英文版本示意.png" alt="英文版本">
+  </div>
+  <div class="img-caption">三语国际化：中文 / English / Italiano</div>
+
+  <div class="img-wrap" style="margin-top:16px;">
+    <img src="主教练录入训练课示意.png" alt="训练课录入">
+  </div>
+  <div class="img-caption">主教练端：语音录入训练课</div>
+</div>
+
+<!-- ==================== 15 反思 ==================== -->
+<div class="section">
+  <div class="section-number">15</div>
+  <div class="section-title">反思</div>
+  <div class="section-subtitle">如果重新做，会改变什么。</div>
+
+  <div class="card">
+    <div class="card-title">会更早做用户测试</div>
+    <div class="card-desc">v1.0 上线后才发现体测完成率低（78%），如果提前测试可以避免。后来将 PB 成绩设为默认推荐，完成率提升到 88%。</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">会更早考虑多团队隔离</div>
+    <div class="card-desc">最初是单团队设计，后来加多团队改动了 60+ 处代码。如果从一开始就设计 team_id，改动量会小很多。</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">学到的教训</div>
+    <div class="card-desc">
+      <strong>先验证假设再开发，不要在真空中设计产品。</strong><br><br>
+      最自豪的不是技术实现，而是产品决策：坚持双视角、坚持语音优先、坚持医训协同。这些决策都来自深入的用户理解，而不是技术驱动。
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 扫码体验 ==================== -->
+<div class="qr-section">
+  <div style="font-size:14px; color:var(--text-dim); margin-bottom:24px;">扫码体验产品</div>
+  <div class="qr-code">
+    <img src="qr新.png" alt="QR Code">
+  </div>
+  <div class="qr-url">maisport.cn</div>
+  <div class="qr-hint">AI 驱动的专业运动训练分析平台</div>
+</div>
+
+<!-- ==================== Footer ==================== -->
+<div class="footer">
+  <div style="margin-bottom:8px;">
+    <span style="color:var(--accent);">脉</span> · Movement · Analysis · Intelligence
+  </div>
+  <div>PM Portfolio · 2026</div>
+</div>
+
+</div>
+</body>
+</html>
