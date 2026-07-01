@@ -4,6 +4,7 @@ import { useAuth } from "../contexts/AuthContext.jsx";
 import { doctorService, authService, notificationService } from "../services";
 import LoadingState from "../components/LoadingState.jsx";
 import NotificationBell from "../components/NotificationBell.jsx";
+import TeamJoinCard from "../components/TeamJoinCard.jsx";
 import '../styles/doctor-pages.css';
 
 const TREATMENT_METHODS = ["超声波治疗", "冲击波治疗", "手法松解", "针灸", "理疗", "其他"];
@@ -745,6 +746,12 @@ export default function DoctorHome({ onGoAthleteDetail, onGoConflictCheck }) {
                 <span className="sheet-info-value">{user.id}</span>
               </div>
             </div>
+            {/* 加入团队（无团队时显示） */}
+            {!user?.team_id && (
+              <div style={{ marginBottom: 16 }}>
+                <TeamJoinCard />
+              </div>
+            )}
             <button className="sheet-logout" onClick={() => { setShowProfile(false); logout(); }}>退出登录</button>
           </div>
         </>
