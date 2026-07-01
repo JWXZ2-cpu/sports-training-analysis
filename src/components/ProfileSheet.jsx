@@ -3,6 +3,7 @@ import { useAuth } from "../contexts/AuthContext.jsx";
 import { useI18n } from "../locales/index.jsx";
 import { teamService } from "../services";
 import { ROLE_LABELS } from "../styles/sharedStyles.js";
+import TeamJoinCard from "./TeamJoinCard.jsx";
 
 
 /**
@@ -138,6 +139,13 @@ export default function ProfileSheet({ isOpen, onClose }) {
                 {teamInfo.members?.length || 0} {isZh ? "名成员" : "members"}
               </span>
             </div>
+          </div>
+        )}
+
+        {/* 加入团队（非主教练且无团队时显示） */}
+        {user?.role !== "head_coach" && !user?.team_id && (
+          <div style={{ marginBottom: 16 }}>
+            <TeamJoinCard />
           </div>
         )}
 

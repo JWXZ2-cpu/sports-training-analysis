@@ -2,6 +2,7 @@
  * 助教个人资料 Sheet 弹窗
  */
 import { useI18n } from "../locales/index.jsx";
+import TeamJoinCard from "../components/TeamJoinCard.jsx";
 
 export default function AssistantProfileSheet({ user, onClose, onLogout }) {
   const { t } = useI18n();
@@ -35,6 +36,12 @@ export default function AssistantProfileSheet({ user, onClose, onLogout }) {
             <span className="sheet-info-value">{user.id}</span>
           </div>
         </div>
+        {/* 加入团队（无团队时显示） */}
+        {!user?.team_id && (
+          <div style={{ marginBottom: 12 }}>
+            <TeamJoinCard />
+          </div>
+        )}
         <button className="sheet-logout" onClick={onLogout}>{assistantT.logout || "退出登录"}</button>
       </div>
     </>
